@@ -1,0 +1,384 @@
+@use '../../theme' as *;
+
+:host {
+  display: block;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.kiosk {
+  position: relative;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  height: 100%;
+  background: $rh-white;
+  transition: background-color 0.4s ease;
+
+  &.state-win {
+    background: $rh-black;
+    color: $rh-white;
+  }
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 2.5rem;
+  height: 72px;
+  background: $rh-black;
+  color: $rh-white;
+  border-bottom: 4px solid $rh-red;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  font-family: $font-display;
+  font-size: 1.5rem;
+  letter-spacing: 0.01em;
+
+  strong {
+    font-weight: 700;
+  }
+}
+
+.brand-hat {
+  width: 56px;
+}
+
+.config-link {
+  color: $rh-gray-60;
+  font-size: 1.6rem;
+  text-decoration: none;
+  opacity: 0.35;
+
+  &:hover {
+    opacity: 1;
+    color: $rh-white;
+  }
+}
+
+.stage {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 4rem;
+  overflow: hidden;
+}
+
+.panel {
+  width: 100%;
+  max-width: 1400px;
+  animation: panel-in 0.45s cubic-bezier(0.2, 0.8, 0.2, 1);
+
+  h1 {
+    font-family: $font-display;
+    font-weight: 700;
+    font-size: clamp(2.8rem, 6vw, 5.5rem);
+    line-height: 1.05;
+    margin: 0 0 1.2rem;
+  }
+
+  h2 {
+    font-family: $font-display;
+    font-weight: 500;
+    font-size: 2.2rem;
+  }
+
+  .lead {
+    font-size: clamp(1.3rem, 2.2vw, 2rem);
+    line-height: 1.4;
+    margin: 0 auto 1.2rem;
+    max-width: 60ch;
+  }
+
+  .hint {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    font-size: 1.3rem;
+    color: $rh-gray-60;
+  }
+}
+
+.center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+
+  .hint {
+    justify-content: center;
+  }
+}
+
+.ready {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  align-items: center;
+  gap: 3rem;
+
+  .eyebrow {
+    display: inline-block;
+    margin: 0 0 1.2rem;
+    padding: 0.35rem 0.9rem;
+    font-family: $font-display;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: $rh-white;
+    background: $rh-red;
+    border-radius: 999px;
+  }
+
+  .lead {
+    margin-left: 0;
+  }
+
+  .visual {
+    display: flex;
+    justify-content: center;
+  }
+}
+
+.float-hat {
+  width: min(38vw, 560px);
+  animation: float 4s ease-in-out infinite;
+}
+
+.scan-icon {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 32px;
+  border: 3px solid $rh-black;
+  border-radius: 4px;
+  background: repeating-linear-gradient(90deg, $rh-black 0 2px, transparent 2px 5px) center / 70%
+    60% no-repeat;
+
+  .laser {
+    position: absolute;
+    left: -6px;
+    right: -6px;
+    height: 2px;
+    background: $rh-red;
+    box-shadow: 0 0 8px $rh-red;
+    animation: laser 1.4s ease-in-out infinite alternate;
+  }
+}
+
+.spinner {
+  width: 96px;
+  height: 96px;
+  border: 10px solid $rh-gray-20;
+  border-top-color: $rh-red;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+/* ---------- winner ---------- */
+.win {
+  h1 {
+    color: $rh-white;
+  }
+
+  .lead {
+    color: $rh-gray-20;
+  }
+}
+
+.win-hat-wrap {
+  position: relative;
+  width: min(42vw, 520px);
+  margin-bottom: 1rem;
+}
+
+.glow {
+  position: absolute;
+  inset: -20% -10%;
+  background: radial-gradient(circle, rgba(238, 0, 0, 0.55) 0%, rgba(238, 0, 0, 0) 65%);
+  animation: pulse 1.6s ease-in-out infinite;
+}
+
+.win-hat {
+  position: relative;
+  width: 100%;
+  animation:
+    hat-fly-in 1.3s cubic-bezier(0.2, 0.9, 0.3, 1.2) both,
+    hat-bob 2.2s ease-in-out 1.3s infinite;
+}
+
+.number-badge {
+  margin-top: 0.5rem;
+  padding: 0.5rem 1.6rem;
+  font-family: $font-display;
+  font-size: 2rem;
+  font-weight: 700;
+  color: $rh-white;
+  background: $rh-red;
+  border-radius: 999px;
+}
+
+/* ---------- no win ---------- */
+.number-circle {
+  display: grid;
+  place-items: center;
+  min-width: 180px;
+  height: 180px;
+  padding: 0 1.5rem;
+  margin-bottom: 1.5rem;
+  font-family: $font-display;
+  font-size: 4.5rem;
+  font-weight: 700;
+  color: $rh-black;
+  border: 8px solid $rh-black;
+  border-radius: 999px;
+}
+
+.sad-hat {
+  width: 260px;
+  margin-bottom: 1rem;
+  filter: grayscale(0.6);
+  transform: rotate(-12deg);
+}
+
+/* ---------- duplicate / error ---------- */
+.alert {
+  .alert-icon {
+    display: grid;
+    place-items: center;
+    width: 150px;
+    height: 150px;
+    margin-bottom: 1.5rem;
+    font-family: $font-display;
+    font-size: 6rem;
+    font-weight: 700;
+    color: $rh-white;
+    background: $rh-red;
+    border-radius: 50%;
+    animation: shake 0.6s ease-in-out;
+  }
+
+  h1 {
+    color: $rh-red-dark;
+  }
+}
+
+/* ---------- footer ---------- */
+.stats {
+  display: flex;
+  justify-content: center;
+  gap: 4rem;
+  padding: 1rem;
+  background: $rh-gray-10;
+  border-top: 1px solid $rh-gray-20;
+
+  .state-win & {
+    background: #0a0a0a;
+    border-color: #292929;
+  }
+}
+
+.stat {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+
+  .value {
+    font-family: $font-display;
+    font-size: 2rem;
+    font-weight: 700;
+    color: $rh-red;
+  }
+
+  .label {
+    font-size: 1.1rem;
+    color: $rh-gray-60;
+  }
+}
+
+@keyframes panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+}
+
+@keyframes float {
+  50% {
+    transform: translateY(-18px) rotate(-3deg);
+  }
+}
+
+@keyframes laser {
+  from {
+    top: 10%;
+  }
+  to {
+    top: 85%;
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes pulse {
+  50% {
+    transform: scale(1.12);
+    opacity: 0.7;
+  }
+}
+
+@keyframes hat-fly-in {
+  0% {
+    transform: translate(-70vw, 60vh) rotate(-540deg) scale(0.2);
+  }
+  70% {
+    transform: translate(0, -40px) rotate(8deg) scale(1.08);
+  }
+  100% {
+    transform: none;
+  }
+}
+
+@keyframes hat-bob {
+  50% {
+    transform: translateY(-14px) rotate(-4deg);
+  }
+}
+
+@keyframes shake {
+  20%,
+  60% {
+    transform: translateX(-12px);
+  }
+  40%,
+  80% {
+    transform: translateX(12px);
+  }
+}
+
+@media (max-width: 900px) {
+  .ready {
+    grid-template-columns: 1fr;
+    text-align: center;
+
+    .lead {
+      margin: 0 auto 1.2rem;
+    }
+
+    .hint {
+      justify-content: center;
+    }
+  }
+
+  .stage {
+    padding: 1.5rem;
+  }
+}

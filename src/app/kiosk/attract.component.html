@@ -1,0 +1,60 @@
+<div class="attract">
+  <div class="stripes" aria-hidden="true"></div>
+
+  <div class="floating" aria-hidden="true">
+    @for (hat of floatingHats; track $index) {
+      <app-hat
+        [shadow]="false"
+        class="floater"
+        [style.left.%]="hat.left"
+        [style.width.px]="hat.size"
+        [style.animation-duration.s]="hat.duration"
+        [style.animation-delay.s]="hat.delay"
+        [style.--drift]="hat.drift + 'px'"
+      />
+    }
+  </div>
+
+  <div class="content">
+    <div class="hero-hat">
+      <app-hat />
+    </div>
+
+    <div class="headline-wrap">
+      @for (headline of i18n.texts().idleHeadlines; track $index) {
+        @if ($index === headlineIndex()) {
+          <h1 class="headline">{{ headline }}</h1>
+        }
+      }
+    </div>
+
+    <p class="rule">
+      {{ settings().winnerRule === 'code' ? i18n.t('idleRuleCode') : i18n.t('idleRuleCounter') }}
+    </p>
+
+    <div class="cta">
+      <span class="cta-dot"></span>
+      {{ i18n.t('idleCta') }}
+    </div>
+
+    @if (winners() > 0 || hatsLeft() !== null) {
+      <p class="counter">
+        @if (winners() > 0) {
+          <span
+            ><strong>{{ winners() }}</strong> {{ i18n.t('statsWinners') }}</span
+          >
+        }
+        @if (hatsLeft() !== null) {
+          <span
+            ><strong>{{ hatsLeft() }}</strong> {{ i18n.t('statsLeft') }}</span
+          >
+        }
+      </p>
+    }
+  </div>
+
+  <div class="scan-here">
+    <span>{{ i18n.t('scanHere') }}</span>
+    <div class="arrow">↓</div>
+  </div>
+</div>
