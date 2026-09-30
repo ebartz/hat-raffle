@@ -42,7 +42,7 @@ let nextId = 0;
 })
 export class HatComponent {
   readonly shadow = input(true);
-  readonly label = input('Roter Hut');
+  readonly label = input('Fedora');
 
   protected readonly id = `hat${nextId++}-`;
   protected readonly crown = HAT_CROWN;

@@ -1,13 +1,34 @@
-# Hat Raffle 🎩
+# Win a Fedora 🎩
 
 Gewinnspiel für den Messestand: Das Standpersonal scannt den Ausweis der Besucher mit einem
 Barcode-/QR-Scanner. Ist die Teilnehmernummer eine **Primzahl** (oder wird die Person per
-**Zufall** gezogen), gewinnt sie einen roten Hut – mit Konfetti und fliegenden Hüten. Jeder
+**Zufall** gezogen), gewinnt sie eine rote **Fedora** – mit Konfetti und fliegenden Fedoras. Jeder
 Ausweis kann nur einmal teilnehmen.
 
 Läuft komplett im Browser (Angular), optional mit einem kleinen Node-Backend, über das sich
 beliebig viele Scan-Stationen (Laptops mit USB-Handscanner, Handys und Tablets mit Kamera)
 einen Zähler, die Einstellungen und die Ergebnisse teilen.
+
+## Screenshots
+
+| Startbildschirm (PC mit USB-Handscanner)             | Gewinn: Konfetti und fliegende Fedoras                             |
+| ---------------------------------------------------- | ------------------------------------------------------------------ |
+| ![Startbildschirm](docs/screenshots/kiosk-ready.png) | ![Gewinn](docs/screenshots/kiosk-win.png)                          |
+| **Idle-Animation**, lockt Besucher an den Stand      | **Live-Ergebnis** einer anderen Station (hier: vom Handy)          |
+| ![Idle-Animation](docs/screenshots/attract.png)      | ![Ergebnis einer anderen Station](docs/screenshots/remote-win.png) |
+| **Keine Primzahl** – diesmal keine Fedora            | **Doppelter Scan** wird erkannt                                    |
+| ![Kein Gewinn](docs/screenshots/kiosk-lose.png)      | ![Duplikat](docs/screenshots/kiosk-duplicate.png)                  |
+
+| Handy: Kamera-Scan                                                                        | Handy: Gewinn                                                                     | Config mit PIN gesperrt                                        |
+| ----------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- | -------------------------------------------------------------- |
+| <img src="docs/screenshots/phone-camera.png" alt="Kamera-Scan auf dem Handy" width="260"> | <img src="docs/screenshots/phone-win.png" alt="Gewinn auf dem Handy" width="260"> | ![Gesperrte Konfiguration](docs/screenshots/config-locked.png) |
+
+<details>
+<summary>Konfigurationsseite (ganze Seite)</summary>
+
+![Konfiguration](docs/screenshots/config.png)
+
+</details>
 
 ## Features
 
@@ -18,13 +39,13 @@ einen Zähler, die Einstellungen und die Ergebnisse teilen.
 - **Mehrere Stationen**: das Backend vergibt die Teilnehmernummern zentral (nie doppelt), verteilt
   Config-Änderungen sofort an alle Stationen und zeigt Ergebnisse live auf allen großen Bildschirmen
 - **Duplikaterkennung**: bereits gescannte Ausweise werden nicht erneut gezählt, es erscheint ein Hinweis
-- **Gewinnanimation**: Hut fliegt ein, Konfetti in Red-Hat-Farben, Hüte regnen vom Himmel
+- **Gewinnanimation**: die Fedora fliegt ein, Konfetti in Red-Hat-Farben, Fedoras regnen vom Himmel
 - **Idle-/Attract-Modus**: nach X Sekunden ohne Scan läuft eine Animation, die Besucher an den Stand lockt;
   Überschriften, Unterzeile und Button-Text sind in der Config anpassbar
-- **Hut-Kontingent**: optional begrenzte Anzahl Hüte, danach „alle Hüte vergeben“
+- **Fedora-Kontingent**: optional begrenzte Anzahl Fedoras, danach „alle Fedoras vergeben“
 - **Config-Seite** (`/#/config`, wie bei [bashbrawl](https://github.com/jggoebel/bashbrawl)):
   - _Dieses Gerät_: Backend-URL, API-Key, Stationsname, Scan-Methode (automatisch/USB/Kamera)
-  - _Gewinnspiel_ (im Backend gespeichert, für alle Stationen gleich): Gewinnregel, Hut-Anzahl,
+  - _Gewinnspiel_ (im Backend gespeichert, für alle Stationen gleich): Gewinnregel, Anzahl Fedoras,
     Timings, Sprache (DE/EN), Idle-Texte, Ergebnisse anderer Stationen anzeigen, PIN/Passwort
   - Healthcheck, Scanner-Test, Liste aller erfassten Codes (auch als QR-Code), CSV-Export
 - **PIN/Passwort für die Config**: einmal gesetzt, wird sie bei jedem Öffnen der Config verlangt
@@ -93,11 +114,11 @@ einen Code im Kiosk eintippen und mit Enter abschicken.
 
 ## Gewinnregel
 
-| Regel                | Beschreibung                                                                                                                          |
-| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| `counter` (Standard) | Die n-te Person gewinnt, wenn n eine Primzahl ist (2., 3., 5., 7., 11., …).                                                           |
-| `code`               | Alle Ziffern des gescannten Codes werden als Zahl gelesen und auf Primzahl geprüft.                                                   |
-| `random`             | Zufall: In jedem Block von 100 Scans (1–100, 101–200, …) werden genau _Hüte pro 100 Scans_ Gewinner an zufälligen Positionen gezogen. |
+| Regel                | Beschreibung                                                                                                                             |
+| -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `counter` (Standard) | Die n-te Person gewinnt, wenn n eine Primzahl ist (2., 3., 5., 7., 11., …).                                                              |
+| `code`               | Alle Ziffern des gescannten Codes werden als Zahl gelesen und auf Primzahl geprüft.                                                      |
+| `random`             | Zufall: In jedem Block von 100 Scans (1–100, 101–200, …) werden genau _Fedoras pro 100 Scans_ Gewinner an zufälligen Positionen gezogen. |
 
 Im Backend-Modus vergibt der Server die Teilnehmernummern, dadurch funktionieren auch
 mehrere Stationen mit einem gemeinsamen Zähler.
@@ -195,4 +216,4 @@ Für die Handy-Kamera wird HTTPS benötigt: entweder `TLS_CERT`/`TLS_KEY` am Bac
   enthalten keine Codes, nur Nummer, Station und Ergebnis.
 - Die lokale PIN (ohne Backend) liegt nur im Browser und schützt vor versehentlichen Änderungen,
   nicht vor jemandem mit Zugriff auf die Entwicklertools.
-- Der rote Hut ist eine eigene Zeichnung, kein offizielles Red-Hat-Logo.
+- Die rote Fedora ist eine eigene Zeichnung, kein offizielles Red-Hat-Logo.
