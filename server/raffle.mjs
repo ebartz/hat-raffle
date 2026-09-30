@@ -86,7 +86,10 @@ export class RaffleStore {
     return { total: this.scans.length, winners: this.scans.filter((s) => s.winner).length };
   }
 
-  /** Registers a scan. Synchronous bookkeeping guarantees unique, gap-free numbers. */
+  /**
+   * Registers a scan. Everything up to `persist()` runs synchronously, so even with many
+   * stations sending scans at the same time every participant gets a unique, gap-free number.
+   */
   async register(rawCode, { rule = 'counter', hatsTotal = 0, hatsPer100 = 0, station = '' } = {}) {
     const code = normalizeCode(rawCode);
     const existing = this.byCode.get(code);

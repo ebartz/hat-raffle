@@ -1,12 +1,10 @@
-import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable, inject, signal } from '@angular/core';
-import { firstValueFrom, timeout } from 'rxjs';
+import { BackendService, CLIENT_ID } from './backend.service';
 import { RegisterOptions, ScanRecord, ScanResult, ScanStats } from './models';
 import { SettingsService } from './settings.service';
 import { isWinningScan, normalizeCode } from './winner';
 
 const LOCAL_KEY = 'hat_raffle_scans';
-const REQUEST_TIMEOUT_MS = 8000;
 
 /**
  * Persists scanned badges either in the browser (local mode) or in the
@@ -14,7 +12,7 @@ const REQUEST_TIMEOUT_MS = 8000;
  */
 @Injectable({ providedIn: 'root' })
 export class ScanStoreService {
-  private readonly http = inject(HttpClient);
+  private readonly backend = inject(BackendService);
   private readonly settings = inject(SettingsService);
 
   readonly stats = signal<ScanStats>({ total: 0, winners: 0 });
@@ -22,35 +20,27 @@ export class ScanStoreService {
   async register(rawCode: string): Promise<ScanResult> {
     const code = normalizeCode(rawCode);
     const s = this.settings.value;
-    const options: RegisterOptions = {
-      rule: s.winnerRule,
-      hatsTotal: s.hatsTotal,
-      hatsPer100: s.hatsPer100,
-      station: s.station,
-    };
+    // With a backend the server decides about the winner using the shared config.
     const result = this.settings.useLocal
-      ? this.registerLocal(code, options)
-      : await firstValueFrom(
-          this.http
-            .post<ScanResult>(
-              this.url('/api/scans'),
-              { code, ...options },
-              { headers: this.headers() },
-            )
-            .pipe(timeout(REQUEST_TIMEOUT_MS)),
-        );
+      ? this.registerLocal(code, {
+          rule: s.winnerRule,
+          hatsTotal: s.hatsTotal,
+          hatsPer100: s.hatsPer100,
+          station: s.station,
+        })
+      : await this.backend.post<ScanResult>('/api/scans', {
+          code,
+          station: s.station,
+          clientId: CLIENT_ID,
+        });
     this.refreshStats().catch(() => undefined);
     return result;
   }
 
-  async list(): Promise<ScanRecord[]> {
+  /** Lists all scans. The backend requires the config PIN once one is set. */
+  async list(pin?: string | null): Promise<ScanRecord[]> {
     if (this.settings.useLocal) return this.loadLocal();
-    const res = await firstValueFrom(
-      this.http
-        .get<{ scans: ScanRecord[] }>(this.url('/api/scans'), { headers: this.headers() })
-        .pipe(timeout(REQUEST_TIMEOUT_MS)),
-    );
-    return res.scans;
+    return (await this.backend.get<{ scans: ScanRecord[] }>('/api/scans', pin)).scans;
   }
 
   async refreshStats(): Promise<ScanStats> {
@@ -59,11 +49,7 @@ export class ScanStoreService {
       const scans = this.loadLocal();
       stats = { total: scans.length, winners: scans.filter((s) => s.winner).length };
     } else {
-      stats = await firstValueFrom(
-        this.http
-          .get<ScanStats>(this.url('/api/stats'), { headers: this.headers() })
-          .pipe(timeout(REQUEST_TIMEOUT_MS)),
-      );
+      stats = await this.backend.get<ScanStats>('/api/stats');
     }
     this.stats.set(stats);
     return stats;
@@ -72,7 +58,7 @@ export class ScanStoreService {
   async healthz(): Promise<boolean> {
     if (this.settings.useLocal) return true;
     try {
-      await firstValueFrom(this.http.get(this.url('/healthz')).pipe(timeout(REQUEST_TIMEOUT_MS)));
+      await this.backend.get('/healthz');
       return true;
     } catch {
       return false;
@@ -115,14 +101,5 @@ export class ScanStoreService {
     } catch {
       return [];
     }
-  }
-
-  private url(path: string): string {
-    return this.settings.value.backend + path;
-  }
-
-  private headers(): HttpHeaders {
-    const key = this.settings.value.apiKey;
-    return key ? new HttpHeaders({ 'X-Api-Key': key }) : new HttpHeaders();
   }
 }

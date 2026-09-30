@@ -27,3 +27,13 @@ export interface RegisterOptions {
   hatsPer100: number;
   station: string;
 }
+
+/** A new scan at any station, pushed live by the backend (without the badge code). */
+export interface RemoteScanEvent {
+  status: ScanStatus;
+  soldOut: boolean;
+  record: Omit<ScanRecord, 'code'>;
+  /** Id of the browser that made the scan, used to skip our own scans. */
+  clientId: string;
+  stats: ScanStats;
+}
