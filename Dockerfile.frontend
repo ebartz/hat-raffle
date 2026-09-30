@@ -1,0 +1,16 @@
+# Frontend only: the Angular app served by nginx. Requests to /api and /healthz are
+# forwarded to the backend, so every station only needs to open this one address.
+#   docker build -f Dockerfile.frontend -t hat-raffle-frontend .
+FROM node:24-alpine AS build
+WORKDIR /app
+COPY package.json package-lock.json ./
+RUN npm ci
+COPY . .
+RUN npm run build
+
+FROM nginx:1.27-alpine
+# Address of the backend container, used by the nginx config template.
+ENV BACKEND_URL=http://backend:3000
+COPY docker/nginx.conf.template /etc/nginx/templates/default.conf.template
+COPY --from=build /app/dist/hat-raffle/browser /usr/share/nginx/html
+EXPOSE 80

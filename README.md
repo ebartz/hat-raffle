@@ -147,10 +147,42 @@ Ein Datensatz sieht so aus:
 
 ### Docker
 
+Es gibt drei Images:
+
+| Datei                 | Inhalt                                                                                    |
+| --------------------- | ----------------------------------------------------------------------------------------- |
+| `server/Dockerfile`   | nur das **Backend** (API, geteilte Config, Live-Events), Port 3000                        |
+| `Dockerfile.frontend` | nur das **Frontend** (nginx), leitet `/api` und `/healthz` an das Backend weiter, Port 80 |
+| `Dockerfile`          | alles in einem: das Backend liefert auch das Frontend aus, Port 3000                      |
+
+**Backend und Frontend getrennt (docker compose):**
+
+```bash
+docker compose up -d --build        # Frontend: http://<host>:8080, Backend: Port 3000
+```
+
+Alle Stationen öffnen `http://<host>:8080`. Das Frontend verbindet sich über den nginx-Proxy
+automatisch mit dem Backend. Scans und Config liegen im Volume `raffle-data`. Einen API-Key
+setzt man über eine `.env`-Datei neben der `docker-compose.yml` (`API_KEY=geheim`).
+
+**Nur das Backend:**
+
+```bash
+docker build -t hat-raffle-backend server
+docker run -d -p 3000:3000 -v raffle-data:/data hat-raffle-backend
+```
+
+Das Frontend (egal wo es läuft) dann in der Config auf `http://<host>:3000` zeigen lassen.
+
+**Alles in einem Container:**
+
 ```bash
 docker build -t hat-raffle .
 docker run -p 3000:3000 -v $(pwd)/data:/data -e API_KEY=geheim hat-raffle
 ```
+
+Für die Handy-Kamera wird HTTPS benötigt: entweder `TLS_CERT`/`TLS_KEY` am Backend setzen
+(Zertifikate per Volume einbinden) oder einen Reverse-Proxy mit TLS vor das Frontend stellen.
 
 ## Hinweise für die Messe
 
