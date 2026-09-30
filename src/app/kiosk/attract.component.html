@@ -21,20 +21,20 @@
     </div>
 
     <div class="headline-wrap">
-      @for (headline of i18n.texts().idleHeadlines; track $index) {
-        @if ($index === headlineIndex()) {
+      @for (headline of headlines(); track $index) {
+        @if ($index === headlineIndex() % headlines().length) {
           <h1 class="headline">{{ headline }}</h1>
         }
       }
     </div>
 
     <p class="rule">
-      {{ settings().winnerRule === 'code' ? i18n.t('idleRuleCode') : i18n.t('idleRuleCounter') }}
+      {{ subline() }}
     </p>
 
     <div class="cta">
       <span class="cta-dot"></span>
-      {{ i18n.t('idleCta') }}
+      {{ cta() }}
     </div>
 
     @if (winners() > 0 || hatsLeft() !== null) {
@@ -51,10 +51,5 @@
         }
       </p>
     }
-  </div>
-
-  <div class="scan-here">
-    <span>{{ i18n.t('scanHere') }}</span>
-    <div class="arrow">↓</div>
   </div>
 </div>

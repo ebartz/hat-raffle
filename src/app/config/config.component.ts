@@ -7,13 +7,15 @@ import { ScanRecord } from '../core/models';
 import { ScanStoreService } from '../core/scan-store.service';
 import { ScannerService } from '../core/scanner.service';
 import { Settings, SettingsService } from '../core/settings.service';
+import { I18nService } from '../core/i18n.service';
 import { HatComponent } from '../shared/hat.component';
+import { QrCodeComponent } from '../shared/qr-code.component';
 
 type Health = 'unknown' | 'checking' | 'healthy' | 'unhealthy' | 'local';
 
 @Component({
   selector: 'app-config',
-  imports: [FormsModule, RouterLink, DatePipe, HatComponent],
+  imports: [FormsModule, RouterLink, DatePipe, HatComponent, QrCodeComponent],
   templateUrl: './config.component.html',
   styleUrl: './config.component.scss',
 })
@@ -22,7 +24,11 @@ export class ConfigComponent implements OnInit, OnDestroy {
   private readonly store = inject(ScanStoreService);
   private readonly scanner = inject(ScannerService);
 
+  private readonly i18n = inject(I18nService);
+
   protected form: Settings = { ...this.settingsService.value };
+  protected headlinesText = this.form.idleHeadlines.join('\n');
+  protected readonly selected = signal<ScanRecord | null>(null);
   protected readonly saved = signal(false);
   protected readonly health = signal<Health>('unknown');
   protected readonly lastScan = signal('');
@@ -49,9 +55,23 @@ export class ConfigComponent implements OnInit, OnDestroy {
     this.form.backend = window.location.origin;
   }
 
+  protected get defaultHeadlines(): string {
+    return this.i18n.texts().idleHeadlines.join('\n');
+  }
+
+  protected get defaultCta(): string {
+    return this.i18n.t('idleCta');
+  }
+
   protected save(): void {
-    this.settingsService.save(this.form);
+    const idleHeadlines = this.headlinesText
+      .split('\n')
+      .map((line) => line.trim())
+      .filter(Boolean);
+    const hatsPer100 = Math.min(100, Math.max(0, Math.round(Number(this.form.hatsPer100) || 0)));
+    this.settingsService.save({ ...this.form, idleHeadlines, hatsPer100 });
     this.form = { ...this.settingsService.value };
+    this.headlinesText = this.form.idleHeadlines.join('\n');
     this.saved.set(true);
     setTimeout(() => this.saved.set(false), 2500);
     this.health.set('unknown');

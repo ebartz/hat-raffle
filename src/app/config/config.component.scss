@@ -100,7 +100,8 @@
 }
 
 input,
-select {
+select,
+textarea {
   padding: 0.55rem 0.7rem;
   font: inherit;
   border: 1px solid $rh-gray-40;
@@ -241,4 +242,53 @@ table {
     background: #fff0f0;
     font-weight: 500;
   }
+}
+
+textarea {
+  resize: vertical;
+}
+
+.scan-qr {
+  margin-left: auto;
+}
+
+.qr-thumb {
+  padding: 0;
+  border: 1px solid $rh-gray-20;
+  background: $rh-white;
+  cursor: zoom-in;
+
+  &:hover {
+    border-color: $rh-red;
+  }
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  background: rgba(21, 21, 21, 0.7);
+}
+
+.modal {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  max-width: 90vw;
+  padding: 2rem 2.5rem;
+  background: $rh-white;
+  border-top: 4px solid $rh-red;
+
+  h2 {
+    margin: 0;
+  }
+}
+
+.modal-code {
+  max-width: 100%;
+  font-size: 1.1rem;
+  word-break: break-all;
 }

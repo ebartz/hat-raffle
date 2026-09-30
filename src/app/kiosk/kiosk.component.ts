@@ -35,6 +35,19 @@ export class KioskComponent implements OnInit, OnDestroy {
     return total > 0 ? Math.max(0, total - this.store.stats().winners) : null;
   });
 
+  protected readonly resultText = computed(() => {
+    const n = this.result()?.record?.number ?? '';
+    const won = this.state() === 'win';
+    switch (this.settings().winnerRule) {
+      case 'code':
+        return this.i18n.t(won ? 'winSubtitleCode' : 'loseSubtitleCode');
+      case 'random':
+        return this.i18n.t(won ? 'winSubtitleRandom' : 'loseSubtitleRandom', { n });
+      default:
+        return this.i18n.t(won ? 'winSubtitle' : 'loseSubtitle', { n });
+    }
+  });
+
   private sub?: Subscription;
   private resultTimer?: number;
   private idleTimer?: number;

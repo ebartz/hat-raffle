@@ -47,8 +47,20 @@
         <select name="winnerRule" [(ngModel)]="form.winnerRule">
           <option value="counter">Teilnehmernummer ist Primzahl (2., 3., 5., 7., … Person)</option>
           <option value="code">Ziffern des gescannten Codes sind eine Primzahl</option>
+          <option value="random">Zufall (feste Anzahl Hüte pro 100 Scans)</option>
         </select>
       </label>
+
+      @if (form.winnerRule === 'random') {
+        <label class="field">
+          <span>Hüte pro 100 Scans</span>
+          <input name="hatsPer100" type="number" min="0" max="100" [(ngModel)]="form.hatsPer100" />
+          <small>
+            In jedem Block von 100 Scans (1–100, 101–200, …) werden genau so viele Gewinner zufällig
+            gezogen. Beispiel: 10 → im Schnitt gewinnt jede zehnte Person.
+          </small>
+        </label>
+      }
 
       <label class="field">
         <span>Anzahl Hüte (0 = unbegrenzt)</span>
@@ -84,6 +96,33 @@
         </select>
       </label>
 
+      <h2 class="wide">Texte der Idle-Animation</h2>
+
+      <label class="field wide">
+        <span>Überschriften (eine pro Zeile, wechseln automatisch)</span>
+        <textarea
+          name="idleHeadlines"
+          rows="4"
+          [(ngModel)]="headlinesText"
+          [placeholder]="defaultHeadlines"
+        ></textarea>
+        <small>Leer lassen für die Standardtexte in der gewählten Sprache.</small>
+      </label>
+
+      <label class="field">
+        <span>Unterzeile</span>
+        <input
+          name="idleSubline"
+          [(ngModel)]="form.idleSubline"
+          placeholder="Standard: Erklärung der Gewinnregel"
+        />
+      </label>
+
+      <label class="field">
+        <span>Button-Text</span>
+        <input name="idleCta" [(ngModel)]="form.idleCta" [placeholder]="defaultCta" />
+      </label>
+
       <div class="actions wide">
         <button type="submit" class="btn btn-primary">Speichern</button>
         <button type="button" class="btn btn-secondary" (click)="healthcheck()">Healthcheck</button>
@@ -117,6 +156,9 @@
     <div class="scan-output">
       <span>Letzter Scan:</span>
       <code>{{ lastScan() || '–' }}</code>
+      @if (lastScan()) {
+        <app-qr-code class="scan-qr" [value]="lastScan()" [size]="120" />
+      }
     </div>
     <form class="row" (ngSubmit)="simulateScan()">
       <input name="testCode" [(ngModel)]="testCode" placeholder="Code manuell eingeben" />
@@ -153,6 +195,7 @@
         <thead>
           <tr>
             <th>#</th>
+            <th>QR</th>
             <th>Code</th>
             <th>Gewinn</th>
             <th>Station</th>
@@ -164,6 +207,16 @@
             <tr [class.winner]="scan.winner">
               <td>{{ scan.number }}</td>
               <td>
+                <button
+                  type="button"
+                  class="qr-thumb"
+                  (click)="selected.set(scan)"
+                  title="QR-Code vergrößern"
+                >
+                  <app-qr-code [value]="scan.code" [size]="56" />
+                </button>
+              </td>
+              <td>
                 <code>{{ scan.code }}</code>
               </td>
               <td>{{ scan.winner ? '🎩 Ja' : 'Nein' }}</td>
@@ -172,7 +225,7 @@
             </tr>
           } @empty {
             <tr>
-              <td colspan="5" class="muted">Noch keine Scans.</td>
+              <td colspan="6" class="muted">Noch keine Scans.</td>
             </tr>
           }
         </tbody>
@@ -180,3 +233,15 @@
     </div>
   </section>
 </main>
+
+@if (selected(); as scan) {
+  <div class="modal-backdrop" (click)="selected.set(null)">
+    <div class="modal" role="dialog" aria-modal="true" (click)="$event.stopPropagation()">
+      <h2>Teilnehmer #{{ scan.number }} {{ scan.winner ? '🎩' : '' }}</h2>
+      <app-qr-code [value]="scan.code" [size]="320" />
+      <code class="modal-code">{{ scan.code }}</code>
+      <p class="muted">{{ scan.timestamp | date: 'dd.MM.yyyy HH:mm:ss' }} · {{ scan.station }}</p>
+      <button type="button" class="btn btn-primary" (click)="selected.set(null)">Schließen</button>
+    </div>
+  </div>
+}

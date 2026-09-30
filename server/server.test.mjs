@@ -72,3 +72,10 @@ test('registers scans, detects duplicates and persists them', async () => {
 test('rejects empty codes', async () => {
   assert.equal((await post('   ')).status, 400);
 });
+
+test('random rule hands out exactly hatsPer100 hats per 100 scans', async () => {
+  const store = new RaffleStore(join(dir, 'random.json'));
+  for (let i = 1; i <= 200; i++) await store.register(`r-${i}`, { rule: 'random', hatsPer100: 7 });
+  assert.equal(store.scans.slice(0, 100).filter((s) => s.winner).length, 7);
+  assert.equal(store.scans.slice(100).filter((s) => s.winner).length, 7);
+});

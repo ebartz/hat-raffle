@@ -1,8 +1,9 @@
 # Hat Raffle 🎩
 
-Gewinnspiel für den Messestand: Besucher scannen ihren Ausweis mit einem Barcode-/QR-Scanner.
-Ist die Teilnehmernummer eine **Primzahl**, gewinnt die Person einen roten Hut – mit Konfetti
-und fliegenden Hüten. Jeder Ausweis kann nur einmal teilnehmen.
+Gewinnspiel für den Messestand: Das Standpersonal scannt den Ausweis der Besucher mit einem
+Barcode-/QR-Scanner. Ist die Teilnehmernummer eine **Primzahl** (oder wird die Person per
+**Zufall** gezogen), gewinnt sie einen roten Hut – mit Konfetti und fliegenden Hüten. Jeder
+Ausweis kann nur einmal teilnehmen.
 
 Läuft komplett im Browser (Angular), optional mit einem kleinen Node-Backend, das alle
 gescannten Codes speichert.
@@ -13,11 +14,13 @@ gescannten Codes speichert.
 - **Barcode-Scanner als Tastatur**: schnelle Eingabe + Enter wird als Scan erkannt, normales Tippen wird ignoriert
 - **Duplikaterkennung**: bereits gescannte Ausweise werden nicht erneut gezählt, es erscheint ein Hinweis
 - **Gewinnanimation**: Hut fliegt ein, Konfetti in Red-Hat-Farben, Hüte regnen vom Himmel
-- **Idle-/Attract-Modus**: nach X Sekunden ohne Scan läuft eine Animation, die Besucher an den Stand lockt
+- **Idle-/Attract-Modus**: nach X Sekunden ohne Scan läuft eine Animation, die Besucher an den Stand lockt;
+  Überschriften, Unterzeile und Button-Text sind in der Config anpassbar
 - **Hut-Kontingent**: optional begrenzte Anzahl Hüte, danach „alle Hüte vergeben“
 - **Config-Seite** (`/#/config`, wie bei [bashbrawl](https://github.com/jggoebel/bashbrawl)):
   Backend-URL, API-Key, Stationsname, Gewinnregel, Hut-Anzahl, Timings, Sprache (DE/EN),
-  Healthcheck, Scanner-Test, Liste aller erfassten Codes, CSV-Export
+  Idle-Texte, Healthcheck, Scanner-Test, Liste aller erfassten Codes (jeweils auch als QR-Code,
+  per Klick vergrößerbar), CSV-Export
 - **Backend** ohne Abhängigkeiten (`server/server.mjs`): speichert alle Scans als JSON-Datei
 
 ## Schnellstart am Stand (ein Laptop)
@@ -52,6 +55,7 @@ einen Code im Kiosk eintippen und mit Enter abschicken.
 | --- | --- |
 | `counter` (Standard) | Die n-te Person gewinnt, wenn n eine Primzahl ist (2., 3., 5., 7., 11., …). |
 | `code` | Alle Ziffern des gescannten Codes werden als Zahl gelesen und auf Primzahl geprüft. |
+| `random` | Zufall: In jedem Block von 100 Scans (1–100, 101–200, …) werden genau *Hüte pro 100 Scans* Gewinner an zufälligen Positionen gezogen. |
 
 Im Backend-Modus vergibt der Server die Teilnehmernummern, dadurch funktionieren auch
 mehrere Stationen mit einem gemeinsamen Zähler.
@@ -73,7 +77,7 @@ Konfiguration über Umgebungsvariablen:
 | Methode | Pfad | Beschreibung |
 | --- | --- | --- |
 | `GET` | `/healthz` | Healthcheck |
-| `POST` | `/api/scans` | Body `{ code, rule, hatsTotal, station }` → `201 { status: "new", record, soldOut }` bzw. `200 { status: "duplicate", record }` |
+| `POST` | `/api/scans` | Body `{ code, rule, hatsTotal, hatsPer100, station }` → `201 { status: "new", record, soldOut }` bzw. `200 { status: "duplicate", record }` |
 | `GET` | `/api/scans` | Alle Scans `{ scans, total, winners }` |
 | `GET` | `/api/scans.csv` | CSV-Export |
 | `GET` | `/api/stats` | `{ total, winners }` |
