@@ -1,0 +1,182 @@
+<header class="topbar">
+  <div class="brand">
+    <app-hat class="brand-hat" [shadow]="false" />
+    <span>Hat <strong>Raffle</strong> · Konfiguration</span>
+  </div>
+  <a class="btn btn-secondary on-dark" routerLink="/">Zum Gewinnspiel</a>
+</header>
+
+<main class="content">
+  <section class="card">
+    <h2>Backend</h2>
+    <form (ngSubmit)="save()" class="form">
+      <label class="field wide">
+        <span>Server (oder <code>local</code>)</span>
+        <div class="row">
+          <input
+            name="backend"
+            [(ngModel)]="form.backend"
+            placeholder="https://raffle.example.com oder local"
+          />
+          <button type="button" class="btn btn-tertiary" (click)="useThisServer()">
+            Diesen Server verwenden
+          </button>
+        </div>
+        <small>
+          Bei <code>local</code> werden die Scans nur im Browser gespeichert. Mit einer URL
+          (z.&nbsp;B. <code>http://localhost:3000</code>) werden alle Scans an das Backend
+          geschickt.
+        </small>
+      </label>
+
+      <label class="field">
+        <span>API-Key (optional)</span>
+        <input name="apiKey" type="password" [(ngModel)]="form.apiKey" autocomplete="off" />
+        <small>Wird als <code>X-Api-Key</code> Header gesendet.</small>
+      </label>
+
+      <label class="field">
+        <span>Stationsname</span>
+        <input name="station" [(ngModel)]="form.station" />
+      </label>
+
+      <h2 class="wide">Gewinnspiel</h2>
+
+      <label class="field">
+        <span>Gewinnregel</span>
+        <select name="winnerRule" [(ngModel)]="form.winnerRule">
+          <option value="counter">Teilnehmernummer ist Primzahl (2., 3., 5., 7., … Person)</option>
+          <option value="code">Ziffern des gescannten Codes sind eine Primzahl</option>
+        </select>
+      </label>
+
+      <label class="field">
+        <span>Anzahl Hüte (0 = unbegrenzt)</span>
+        <input name="hatsTotal" type="number" min="0" [(ngModel)]="form.hatsTotal" />
+      </label>
+
+      <label class="field">
+        <span>Idle-Animation nach (Sekunden, 0 = aus)</span>
+        <input name="idleSeconds" type="number" min="0" [(ngModel)]="form.idleSeconds" />
+      </label>
+
+      <label class="field">
+        <span>Ergebnis anzeigen für (Sekunden)</span>
+        <input name="resultSeconds" type="number" min="2" [(ngModel)]="form.resultSeconds" />
+      </label>
+
+      <label class="field">
+        <span>Scanner: max. Pause zwischen Zeichen (ms)</span>
+        <input
+          name="scannerKeyTimeoutMs"
+          type="number"
+          min="10"
+          [(ngModel)]="form.scannerKeyTimeoutMs"
+        />
+        <small>Langsamere Eingaben gelten als normale Tastatur und werden ignoriert.</small>
+      </label>
+
+      <label class="field">
+        <span>Sprache</span>
+        <select name="language" [(ngModel)]="form.language">
+          <option value="de">Deutsch</option>
+          <option value="en">English</option>
+        </select>
+      </label>
+
+      <div class="actions wide">
+        <button type="submit" class="btn btn-primary">Speichern</button>
+        <button type="button" class="btn btn-secondary" (click)="healthcheck()">Healthcheck</button>
+        @switch (health()) {
+          @case ('checking') {
+            <span class="status">Prüfe …</span>
+          }
+          @case ('healthy') {
+            <span class="status ok">Backend erreichbar ✓</span>
+          }
+          @case ('unhealthy') {
+            <span class="status bad">Backend nicht erreichbar ✗</span>
+          }
+          @case ('local') {
+            <span class="status">Lokaler Modus – kein Backend</span>
+          }
+        }
+        @if (saved()) {
+          <span class="status ok">Gespeichert</span>
+        }
+      </div>
+    </form>
+  </section>
+
+  <section class="card">
+    <h2>Scanner-Test</h2>
+    <p>
+      Scanne einen beliebigen Code, um die Ausgabe des Scanners zu prüfen. Auf dieser Seite wird
+      nichts gespeichert.
+    </p>
+    <div class="scan-output">
+      <span>Letzter Scan:</span>
+      <code>{{ lastScan() || '–' }}</code>
+    </div>
+    <form class="row" (ngSubmit)="simulateScan()">
+      <input name="testCode" [(ngModel)]="testCode" placeholder="Code manuell eingeben" />
+      <button type="submit" class="btn btn-tertiary">Anzeigen</button>
+    </form>
+  </section>
+
+  <section class="card">
+    <div class="card-head">
+      <h2>Erfasste Codes ({{ scans().length }})</h2>
+      <div class="row">
+        <button type="button" class="btn btn-tertiary" (click)="loadScans()">Aktualisieren</button>
+        <button
+          type="button"
+          class="btn btn-secondary"
+          (click)="exportCsv()"
+          [disabled]="!scans().length"
+        >
+          CSV-Export
+        </button>
+        @if (isLocal) {
+          <button type="button" class="btn btn-danger" (click)="clearLocal()">
+            Lokale Daten löschen
+          </button>
+        }
+      </div>
+    </div>
+    <p class="muted">Quelle: {{ isLocal ? 'Browser (local storage)' : form.backend }}</p>
+    @if (scansError()) {
+      <p class="status bad">{{ scansError() }}</p>
+    }
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Code</th>
+            <th>Gewinn</th>
+            <th>Station</th>
+            <th>Zeitpunkt</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (scan of scans(); track scan.number) {
+            <tr [class.winner]="scan.winner">
+              <td>{{ scan.number }}</td>
+              <td>
+                <code>{{ scan.code }}</code>
+              </td>
+              <td>{{ scan.winner ? '🎩 Ja' : 'Nein' }}</td>
+              <td>{{ scan.station }}</td>
+              <td>{{ scan.timestamp | date: 'dd.MM.yyyy HH:mm:ss' }}</td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="5" class="muted">Noch keine Scans.</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
+</main>

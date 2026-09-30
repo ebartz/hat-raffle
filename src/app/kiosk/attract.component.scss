@@ -1,0 +1,201 @@
+@use '../../theme' as *;
+
+.attract {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  color: $rh-white;
+  background: radial-gradient(ellipse at 50% 35%, #2b0000 0%, $rh-black 65%);
+  animation: fade-in 0.8s ease;
+}
+
+.stripes {
+  position: absolute;
+  inset: -50%;
+  background: repeating-linear-gradient(
+    -45deg,
+    rgba(238, 0, 0, 0.07) 0 40px,
+    transparent 40px 120px
+  );
+  animation: stripes 30s linear infinite;
+}
+
+.floating {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.floater {
+  position: absolute;
+  bottom: -160px;
+  opacity: 0.55;
+  animation-name: rise;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+.content {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 2rem;
+}
+
+.hero-hat {
+  width: min(40vw, 460px);
+  margin-bottom: 1.5rem;
+  transform-origin: 50% 90%;
+  animation: tip 5s ease-in-out infinite;
+  filter: drop-shadow(0 20px 40px rgba(238, 0, 0, 0.45));
+}
+
+.headline-wrap {
+  min-height: clamp(4rem, 8vw, 8rem);
+  display: flex;
+  align-items: center;
+}
+
+.headline {
+  margin: 0;
+  font-family: $font-display;
+  font-weight: 900;
+  font-size: clamp(3rem, 7.5vw, 7rem);
+  line-height: 1;
+  animation: headline-in 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.rule {
+  margin: 1.2rem 0 2rem;
+  font-size: clamp(1.2rem, 2vw, 1.8rem);
+  color: $rh-gray-20;
+}
+
+.cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 1.1rem 2.4rem;
+  font-family: $font-display;
+  font-weight: 700;
+  font-size: clamp(1.3rem, 2.4vw, 2.1rem);
+  background: $rh-red;
+  border-radius: 999px;
+  box-shadow: 0 0 0 0 rgba(238, 0, 0, 0.7);
+  animation: cta-pulse 2s infinite;
+}
+
+.cta-dot {
+  width: 14px;
+  height: 14px;
+  background: $rh-white;
+  border-radius: 50%;
+  animation: blink 1s steps(2, start) infinite;
+}
+
+.counter {
+  display: flex;
+  gap: 2.5rem;
+  margin-top: 2rem;
+  font-size: 1.4rem;
+  color: $rh-gray-40;
+
+  strong {
+    font-family: $font-display;
+    font-size: 2rem;
+    color: $rh-white;
+  }
+}
+
+.scan-here {
+  position: absolute;
+  bottom: 1.5rem;
+  left: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transform: translateX(-50%);
+  font-family: $font-display;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: $rh-red;
+
+  .arrow {
+    font-size: 3rem;
+    line-height: 1;
+    animation: bounce 1.2s ease-in-out infinite;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes stripes {
+  to {
+    transform: translate(170px, 0);
+  }
+}
+
+@keyframes rise {
+  from {
+    transform: translate(0, 0) rotate(-15deg);
+  }
+  to {
+    transform: translate(var(--drift, 0), -120vh) rotate(25deg);
+  }
+}
+
+@keyframes tip {
+  0%,
+  60%,
+  100% {
+    transform: translateY(0) rotate(0);
+  }
+  70% {
+    transform: translateY(-40px) rotate(-14deg);
+  }
+  80% {
+    transform: translateY(-40px) rotate(10deg);
+  }
+  90% {
+    transform: translateY(0) rotate(0);
+  }
+}
+
+@keyframes headline-in {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.96);
+  }
+}
+
+@keyframes cta-pulse {
+  70% {
+    box-shadow: 0 0 0 28px rgba(238, 0, 0, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(238, 0, 0, 0);
+  }
+}
+
+@keyframes blink {
+  to {
+    visibility: hidden;
+  }
+}
+
+@keyframes bounce {
+  50% {
+    transform: translateY(12px);
+  }
+}

@@ -1,0 +1,118 @@
+<div class="kiosk" [class]="'state-' + state()" (pointerdown)="wake()">
+  <header class="topbar">
+    <div class="brand">
+      <app-hat class="brand-hat" [shadow]="false" />
+      <span class="brand-name">Hat <strong>Raffle</strong></span>
+    </div>
+    <a class="config-link" routerLink="/config" aria-label="Einstellungen">⚙</a>
+  </header>
+
+  <main class="stage">
+    @switch (state()) {
+      @case ('ready') {
+        <section class="panel ready">
+          <div class="copy">
+            <p class="eyebrow">Hat Raffle</p>
+            <h1>{{ i18n.t('readyTitle') }}</h1>
+            <p class="lead">{{ i18n.t('readySubtitle') }}</p>
+            <p class="hint">
+              <span class="scan-icon" aria-hidden="true"><span class="laser"></span></span>
+              {{ i18n.t('readyHint') }}
+            </p>
+          </div>
+          <div class="visual">
+            <app-hat class="float-hat" />
+          </div>
+        </section>
+      }
+      @case ('processing') {
+        <section class="panel center">
+          <div class="spinner" aria-hidden="true"></div>
+          <h2>{{ i18n.t('processing') }}</h2>
+        </section>
+      }
+      @case ('win') {
+        <section class="panel center win">
+          <div class="win-hat-wrap">
+            <div class="glow"></div>
+            <app-hat class="win-hat" />
+          </div>
+          <h1>{{ i18n.t('winTitle') }}</h1>
+          <p class="lead">
+            {{
+              settings().winnerRule === 'code'
+                ? i18n.t('winSubtitleCode')
+                : i18n.t('winSubtitle', { n: result()?.record?.number ?? '' })
+            }}
+          </p>
+          <div class="number-badge">#{{ result()?.record?.number }}</div>
+        </section>
+      }
+      @case ('lose') {
+        <section class="panel center lose">
+          <div class="number-circle">{{ result()?.record?.number }}</div>
+          <h1>{{ i18n.t('loseTitle') }}</h1>
+          <p class="lead">
+            {{
+              settings().winnerRule === 'code'
+                ? i18n.t('loseSubtitleCode')
+                : i18n.t('loseSubtitle', { n: result()?.record?.number ?? '' })
+            }}
+          </p>
+          <p class="hint">{{ i18n.t('loseTeaser') }}</p>
+        </section>
+      }
+      @case ('soldout') {
+        <section class="panel center lose">
+          <app-hat class="sad-hat" />
+          <h1>{{ i18n.t('soldOutTitle') }}</h1>
+          <p class="lead">{{ i18n.t('soldOutSubtitle') }}</p>
+        </section>
+      }
+      @case ('duplicate') {
+        <section class="panel center alert">
+          <div class="alert-icon" aria-hidden="true">!</div>
+          <h1>{{ i18n.t('duplicateTitle') }}</h1>
+          <p class="lead">
+            {{ i18n.t('duplicateSubtitle', { n: result()?.record?.number ?? '' }) }}
+          </p>
+          <p class="hint">
+            {{
+              result()?.record?.winner
+                ? i18n.t('duplicateHintWinner')
+                : i18n.t('duplicateHintLoser')
+            }}
+          </p>
+        </section>
+      }
+      @case ('error') {
+        <section class="panel center alert">
+          <div class="alert-icon" aria-hidden="true">×</div>
+          <h1>{{ i18n.t('errorTitle') }}</h1>
+          <p class="lead">{{ i18n.t('errorSubtitle') }}</p>
+        </section>
+      }
+    }
+  </main>
+
+  <footer class="stats">
+    <div class="stat">
+      <span class="value">{{ store.stats().total }}</span>
+      <span class="label">{{ i18n.t('statsParticipants') }}</span>
+    </div>
+    <div class="stat">
+      <span class="value">{{ store.stats().winners }}</span>
+      <span class="label">{{ i18n.t('statsWinners') }}</span>
+    </div>
+    @if (hatsLeft() !== null) {
+      <div class="stat">
+        <span class="value">{{ hatsLeft() }}</span>
+        <span class="label">{{ i18n.t('statsLeft') }}</span>
+      </div>
+    }
+  </footer>
+
+  @if (idle()) {
+    <app-attract [winners]="store.stats().winners" [hatsLeft]="hatsLeft()" />
+  }
+</div>
