@@ -1,6 +1,6 @@
 import { Injectable, signal } from '@angular/core';
 
-export type WinnerRule = 'counter' | 'code';
+export type WinnerRule = 'counter' | 'code' | 'random';
 export type Language = 'de' | 'en';
 
 export interface Settings {
@@ -9,8 +9,13 @@ export interface Settings {
   apiKey: string;
   /** Name of this scanning station, sent along with every scan. */
   station: string;
-  /** `counter`: the n-th participant wins if n is prime. `code`: the digits of the badge are checked. */
+  /**
+   * `counter`: the n-th participant wins if n is prime.
+   * `code`: the digits of the badge are checked.
+   * `random`: exactly `hatsPer100` random winners in every block of 100 scans.
+   */
   winnerRule: WinnerRule;
+  hatsPer100: number;
   /** Number of hats available, 0 = unlimited. */
   hatsTotal: number;
   idleSeconds: number;
@@ -18,6 +23,10 @@ export interface Settings {
   /** Maximum pause between two key strokes of the barcode scanner. */
   scannerKeyTimeoutMs: number;
   language: Language;
+  /** Custom texts for the attract loop. Empty values fall back to the built-in texts. */
+  idleHeadlines: string[];
+  idleSubline: string;
+  idleCta: string;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -25,11 +34,15 @@ export const DEFAULT_SETTINGS: Settings = {
   apiKey: '',
   station: 'booth-1',
   winnerRule: 'counter',
+  hatsPer100: 10,
   hatsTotal: 0,
   idleSeconds: 30,
   resultSeconds: 8,
   scannerKeyTimeoutMs: 80,
   language: 'de',
+  idleHeadlines: [],
+  idleSubline: '',
+  idleCta: '',
 };
 
 const STORAGE_KEY = 'hat_raffle_settings';

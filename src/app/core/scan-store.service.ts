@@ -25,6 +25,7 @@ export class ScanStoreService {
     const options: RegisterOptions = {
       rule: s.winnerRule,
       hatsTotal: s.hatsTotal,
+      hatsPer100: s.hatsPer100,
       station: s.station,
     };
     const result = this.settings.useLocal
@@ -91,7 +92,10 @@ export class ScanStoreService {
 
     const number = scans.length + 1;
     const winners = scans.filter((s) => s.winner).length;
-    const wouldWin = isWinningScan(options.rule, number, code);
+    const wouldWin = isWinningScan(options.rule, number, code, {
+      previous: scans,
+      hatsPer100: options.hatsPer100,
+    });
     const soldOut = wouldWin && options.hatsTotal > 0 && winners >= options.hatsTotal;
     const record: ScanRecord = {
       code,

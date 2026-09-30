@@ -41,10 +41,26 @@ export function isPrime(value) {
   return true;
 }
 
-export function isWinningScan(rule, number, code) {
+export const RANDOM_BLOCK_SIZE = 100;
+
+export function isWinningScan(
+  rule,
+  number,
+  code,
+  { previous = [], hatsPer100 = 0, random = Math.random } = {},
+) {
   if (rule === 'code') {
     const digits = code.replace(/\D/g, '');
     return digits.length > 0 && isPrime(BigInt(digits));
+  }
+  if (rule === 'random') {
+    // Exactly `hatsPer100` random winners within every block of 100 scans.
+    const perBlock = Math.min(RANDOM_BLOCK_SIZE, Math.max(0, Math.round(Number(hatsPer100) || 0)));
+    const blockStart = Math.floor((number - 1) / RANDOM_BLOCK_SIZE) * RANDOM_BLOCK_SIZE + 1;
+    const wonInBlock = previous.filter((s) => s.number >= blockStart && s.winner).length;
+    const hatsLeft = perBlock - wonInBlock;
+    const scansLeft = blockStart + RANDOM_BLOCK_SIZE - number;
+    return hatsLeft > 0 && random() * scansLeft < hatsLeft;
   }
   return isPrime(number);
 }
@@ -71,13 +87,14 @@ export class RaffleStore {
   }
 
   /** Registers a scan. Synchronous bookkeeping guarantees unique, gap-free numbers. */
-  async register(rawCode, { rule = 'counter', hatsTotal = 0, station = '' } = {}) {
+  async register(rawCode, { rule = 'counter', hatsTotal = 0, hatsPer100 = 0, station = '' } = {}) {
     const code = normalizeCode(rawCode);
     const existing = this.byCode.get(code);
     if (existing) return { status: 'duplicate', record: existing, soldOut: false };
 
     const number = this.scans.length + 1;
-    const wouldWin = isWinningScan(rule === 'code' ? 'code' : 'counter', number, code);
+    const safeRule = ['code', 'random'].includes(rule) ? rule : 'counter';
+    const wouldWin = isWinningScan(safeRule, number, code, { previous: this.scans, hatsPer100 });
     const limit = Math.max(0, Number(hatsTotal) || 0);
     const soldOut = wouldWin && limit > 0 && this.stats.winners >= limit;
     const record = {

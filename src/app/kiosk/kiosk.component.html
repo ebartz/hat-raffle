@@ -39,11 +39,7 @@
           </div>
           <h1>{{ i18n.t('winTitle') }}</h1>
           <p class="lead">
-            {{
-              settings().winnerRule === 'code'
-                ? i18n.t('winSubtitleCode')
-                : i18n.t('winSubtitle', { n: result()?.record?.number ?? '' })
-            }}
+            {{ resultText() }}
           </p>
           <div class="number-badge">#{{ result()?.record?.number }}</div>
         </section>
@@ -53,11 +49,7 @@
           <div class="number-circle">{{ result()?.record?.number }}</div>
           <h1>{{ i18n.t('loseTitle') }}</h1>
           <p class="lead">
-            {{
-              settings().winnerRule === 'code'
-                ? i18n.t('loseSubtitleCode')
-                : i18n.t('loseSubtitle', { n: result()?.record?.number ?? '' })
-            }}
+            {{ resultText() }}
           </p>
           <p class="hint">{{ i18n.t('loseTeaser') }}</p>
         </section>

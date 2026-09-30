@@ -3,9 +3,9 @@ import { SettingsService } from './settings.service';
 
 const TEXTS = {
   de: {
-    readyTitle: 'Scanne deinen Ausweis',
+    readyTitle: 'Lass deinen Ausweis scannen',
     readySubtitle: 'und gewinne mit etwas Glück einen original roten Hut!',
-    readyHint: 'Halte den Code einfach unter den Scanner',
+    readyHint: 'Sprich uns einfach an – wir scannen deinen Ausweis',
     processing: 'Einen Moment …',
     winTitle: 'Glückwunsch!',
     winSubtitle: 'Du bist Teilnehmer Nr. {n} – eine Primzahl! Hol dir deinen Red Hat am Stand ab.',
@@ -13,6 +13,10 @@ const TEXTS = {
     loseSubtitle: 'Du bist Teilnehmer Nr. {n}. Leider keine Primzahl – diesmal kein Hut.',
     loseSubtitleCode: 'Dein Code ist leider keine Primzahl – diesmal kein Hut.',
     winSubtitleCode: 'Dein Code ist eine Primzahl! Hol dir deinen Red Hat am Stand ab.',
+    winSubtitleRandom:
+      'Du bist Teilnehmer Nr. {n} und hast gewonnen! Hol dir deinen Red Hat am Stand ab.',
+    loseSubtitleRandom:
+      'Du bist Teilnehmer Nr. {n}. Diesmal war das Glück leider nicht auf deiner Seite.',
     loseTeaser: 'Sprich uns trotzdem an – wir freuen uns auf dich!',
     duplicateTitle: 'Schon dabei!',
     duplicateSubtitle: 'Dieser Ausweis wurde bereits als Teilnehmer Nr. {n} erfasst.',
@@ -28,19 +32,19 @@ const TEXTS = {
     statsLeft: 'Hüte übrig',
     idleHeadlines: [
       'Du willst einen roten Hut?',
-      'Scanne deinen Ausweis!',
-      'Jede Primzahl gewinnt!',
+      'Lass deinen Ausweis scannen!',
+      'Mitmachen & gewinnen!',
       'Nur solange der Vorrat reicht!',
     ],
-    idleCta: 'Einfach Ausweis scannen & gewinnen',
+    idleCta: 'Sprich uns an – wir scannen deinen Ausweis',
     idleRuleCounter: 'Ist deine Teilnehmernummer eine Primzahl, gehört der Hut dir.',
     idleRuleCode: 'Ist deine Ausweisnummer eine Primzahl, gehört der Hut dir.',
-    scanHere: 'Hier scannen',
+    idleRuleRandom: 'Mit etwas Glück gehört einer unserer roten Hüte dir.',
   },
   en: {
-    readyTitle: 'Scan your badge',
+    readyTitle: 'Get your badge scanned',
     readySubtitle: 'and with a little luck win an original red hat!',
-    readyHint: 'Just hold the code under the scanner',
+    readyHint: 'Just talk to us – we will scan your badge',
     processing: 'One moment …',
     winTitle: 'Congratulations!',
     winSubtitle: 'You are participant #{n} – a prime number! Pick up your Red Hat at the booth.',
@@ -48,6 +52,8 @@ const TEXTS = {
     loseSubtitle: 'You are participant #{n}. Not a prime this time – no hat, sorry.',
     loseSubtitleCode: 'Your code is not a prime number – no hat this time.',
     winSubtitleCode: 'Your code is a prime number! Pick up your Red Hat at the booth.',
+    winSubtitleRandom: 'You are participant #{n} and you won! Pick up your Red Hat at the booth.',
+    loseSubtitleRandom: 'You are participant #{n}. Luck was not on your side this time.',
     loseTeaser: 'Come and talk to us anyway – we are happy to see you!',
     duplicateTitle: 'Already in!',
     duplicateSubtitle: 'This badge has already been registered as participant #{n}.',
@@ -63,14 +69,14 @@ const TEXTS = {
     statsLeft: 'Hats left',
     idleHeadlines: [
       'Want a red hat?',
-      'Scan your badge!',
-      'Every prime number wins!',
+      'Get your badge scanned!',
+      'Join in & win!',
       'While stocks last!',
     ],
-    idleCta: 'Just scan your badge & win',
+    idleCta: 'Talk to us – we scan your badge',
     idleRuleCounter: 'If your participant number is prime, the hat is yours.',
     idleRuleCode: 'If your badge number is prime, the hat is yours.',
-    scanHere: 'Scan here',
+    idleRuleRandom: 'With a bit of luck one of our red hats is yours.',
   },
 } as const;
 

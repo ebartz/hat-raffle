@@ -22,7 +22,8 @@ export interface ScanStats {
 }
 
 export interface RegisterOptions {
-  rule: 'counter' | 'code';
+  rule: 'counter' | 'code' | 'random';
   hatsTotal: number;
+  hatsPer100: number;
   station: string;
 }
