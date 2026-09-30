@@ -40,6 +40,16 @@ const TEXTS = {
     idleRuleCounter: 'Ist deine Teilnehmernummer eine Primzahl, gehört der Hut dir.',
     idleRuleCode: 'Ist deine Ausweisnummer eine Primzahl, gehört der Hut dir.',
     idleRuleRandom: 'Mit etwas Glück gehört einer unserer roten Hüte dir.',
+    cameraTitle: 'Ausweis scannen',
+    cameraHint: 'QR- oder Barcode des Ausweises in den Rahmen halten',
+    cameraStarting: 'Kamera wird gestartet …',
+    cameraInsecure:
+      'Die Kamera ist nur über HTTPS (oder localhost) verfügbar. Bitte das Backend mit TLS_CERT/TLS_KEY starten und die https-Adresse öffnen.',
+    cameraDenied: 'Kein Zugriff auf die Kamera. Bitte in den Browser-Einstellungen erlauben.',
+    cameraError: 'Die Kamera konnte nicht gestartet werden.',
+    cameraRetry: 'Erneut versuchen',
+    manualPlaceholder: 'Code manuell eingeben',
+    remoteStation: 'Station {s}',
   },
   en: {
     readyTitle: 'Get your badge scanned',
@@ -77,6 +87,16 @@ const TEXTS = {
     idleRuleCounter: 'If your participant number is prime, the hat is yours.',
     idleRuleCode: 'If your badge number is prime, the hat is yours.',
     idleRuleRandom: 'With a bit of luck one of our red hats is yours.',
+    cameraTitle: 'Scan badge',
+    cameraHint: 'Hold the QR or barcode of the badge inside the frame',
+    cameraStarting: 'Starting camera …',
+    cameraInsecure:
+      'The camera is only available via HTTPS (or localhost). Start the backend with TLS_CERT/TLS_KEY and open the https address.',
+    cameraDenied: 'No access to the camera. Please allow it in the browser settings.',
+    cameraError: 'The camera could not be started.',
+    cameraRetry: 'Try again',
+    manualPlaceholder: 'Enter code manually',
+    remoteStation: 'Station {s}',
   },
 } as const;
 

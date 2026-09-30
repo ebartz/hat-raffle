@@ -7,123 +7,250 @@
 </header>
 
 <main class="content">
-  <section class="card">
-    <h2>Backend</h2>
-    <form (ngSubmit)="save()" class="form">
-      <label class="field wide">
-        <span>Server (oder <code>local</code>)</span>
-        <div class="row">
+  @switch (access()) {
+    @case ('checking') {
+      <section class="card"><p class="muted">Verbinde …</p></section>
+    }
+    @case ('locked') {
+      <section class="card lock-card">
+        <div class="lock-icon" aria-hidden="true">🔒</div>
+        <h2>Konfiguration gesperrt</h2>
+        <p class="muted">Bitte PIN bzw. Passwort eingeben.</p>
+        <form class="row" (ngSubmit)="unlock()">
           <input
-            name="backend"
-            [(ngModel)]="form.backend"
-            placeholder="https://raffle.example.com oder local"
+            name="unlockPin"
+            type="password"
+            [(ngModel)]="unlockPin"
+            autocomplete="current-password"
+            autofocus
           />
-          <button type="button" class="btn btn-tertiary" (click)="useThisServer()">
-            Diesen Server verwenden
-          </button>
+          <button type="submit" class="btn btn-primary">Entsperren</button>
+        </form>
+        @if (unlockError()) {
+          <p class="status bad">{{ unlockError() }}</p>
+        }
+      </section>
+    }
+  }
+
+  @if (access() === 'open' || access() === 'offline') {
+    <form (ngSubmit)="save()">
+      <section class="card">
+        <h2>Dieses Gerät</h2>
+        <div class="form">
+          <label class="field wide">
+            <span>Backend (oder <code>local</code>)</span>
+            <div class="row">
+              <input
+                name="backend"
+                [(ngModel)]="form.backend"
+                placeholder="https://raffle.example.com oder local"
+              />
+              <button type="button" class="btn btn-tertiary" (click)="useThisServer()">
+                Diesen Server verwenden
+              </button>
+            </div>
+            <small>
+              Bei <code>local</code> werden die Scans nur in diesem Browser gespeichert. Mit einer
+              URL (z.&nbsp;B. <code>https://192.168.1.20:3000</code>) teilen sich alle Stationen
+              Zähler, Einstellungen und Ergebnisse.
+              @if (!isLocal) {
+                <br />Live-Verbindung:
+                <strong
+                  [class.ok-text]="realtime.connected()"
+                  [class.bad-text]="!realtime.connected()"
+                >
+                  {{ realtime.connected() ? 'verbunden' : 'getrennt' }}
+                </strong>
+              }
+            </small>
+          </label>
+
+          @if (access() === 'offline') {
+            <p class="status bad wide">
+              Das Backend ist nicht erreichbar. Nur die Verbindung kann geändert werden.
+            </p>
+          }
+
+          <label class="field">
+            <span>API-Key (optional)</span>
+            <input name="apiKey" type="password" [(ngModel)]="form.apiKey" autocomplete="off" />
+            <small>Wird als <code>X-Api-Key</code> Header gesendet.</small>
+          </label>
+
+          <label class="field">
+            <span>Stationsname</span>
+            <input name="station" [(ngModel)]="form.station" />
+          </label>
+
+          <label class="field">
+            <span>Scan-Methode</span>
+            <select name="inputMode" [(ngModel)]="form.inputMode">
+              <option value="auto">
+                Automatisch (jetzt:
+                {{ isMobile ? 'Kamera – Mobilgerät erkannt' : 'USB-Handscanner' }})
+              </option>
+              <option value="scanner">USB-Handscanner</option>
+              <option value="camera">Kamera</option>
+            </select>
+            <small
+              >Auf Handys und Tablets wird die Kamera genutzt, dort entfällt die
+              Idle-Animation.</small
+            >
+          </label>
+
+          <label class="field">
+            <span>Scanner: max. Pause zwischen Zeichen (ms)</span>
+            <input
+              name="scannerKeyTimeoutMs"
+              type="number"
+              min="10"
+              [(ngModel)]="form.scannerKeyTimeoutMs"
+            />
+            <small>Langsamere Eingaben gelten als normale Tastatur und werden ignoriert.</small>
+          </label>
         </div>
-        <small>
-          Bei <code>local</code> werden die Scans nur im Browser gespeichert. Mit einer URL
-          (z.&nbsp;B. <code>http://localhost:3000</code>) werden alle Scans an das Backend
-          geschickt.
-        </small>
-      </label>
+      </section>
 
-      <label class="field">
-        <span>API-Key (optional)</span>
-        <input name="apiKey" type="password" [(ngModel)]="form.apiKey" autocomplete="off" />
-        <small>Wird als <code>X-Api-Key</code> Header gesendet.</small>
-      </label>
+      @if (access() === 'open') {
+        <section class="card">
+          <h2>Gewinnspiel</h2>
+          <p class="muted">
+            @if (isLocal) {
+              Gilt nur für dieses Gerät (lokaler Modus).
+            } @else {
+              Diese Einstellungen liegen im Backend und werden sofort mit allen Stationen
+              synchronisiert.
+            }
+          </p>
+          <div class="form">
+            <label class="field">
+              <span>Gewinnregel</span>
+              <select name="winnerRule" [(ngModel)]="form.winnerRule">
+                <option value="counter">
+                  Teilnehmernummer ist Primzahl (2., 3., 5., 7., … Person)
+                </option>
+                <option value="code">Ziffern des gescannten Codes sind eine Primzahl</option>
+                <option value="random">Zufall (feste Anzahl Hüte pro 100 Scans)</option>
+              </select>
+            </label>
 
-      <label class="field">
-        <span>Stationsname</span>
-        <input name="station" [(ngModel)]="form.station" />
-      </label>
+            @if (form.winnerRule === 'random') {
+              <label class="field">
+                <span>Hüte pro 100 Scans</span>
+                <input
+                  name="hatsPer100"
+                  type="number"
+                  min="0"
+                  max="100"
+                  [(ngModel)]="form.hatsPer100"
+                />
+                <small>
+                  In jedem Block von 100 Scans (1–100, 101–200, …) werden genau so viele Gewinner
+                  zufällig gezogen. Beispiel: 10 → im Schnitt gewinnt jede zehnte Person.
+                </small>
+              </label>
+            }
 
-      <h2 class="wide">Gewinnspiel</h2>
+            <label class="field">
+              <span>Anzahl Hüte (0 = unbegrenzt)</span>
+              <input name="hatsTotal" type="number" min="0" [(ngModel)]="form.hatsTotal" />
+            </label>
 
-      <label class="field">
-        <span>Gewinnregel</span>
-        <select name="winnerRule" [(ngModel)]="form.winnerRule">
-          <option value="counter">Teilnehmernummer ist Primzahl (2., 3., 5., 7., … Person)</option>
-          <option value="code">Ziffern des gescannten Codes sind eine Primzahl</option>
-          <option value="random">Zufall (feste Anzahl Hüte pro 100 Scans)</option>
-        </select>
-      </label>
+            <label class="field">
+              <span>Idle-Animation nach (Sekunden, 0 = aus)</span>
+              <input name="idleSeconds" type="number" min="0" [(ngModel)]="form.idleSeconds" />
+            </label>
 
-      @if (form.winnerRule === 'random') {
-        <label class="field">
-          <span>Hüte pro 100 Scans</span>
-          <input name="hatsPer100" type="number" min="0" max="100" [(ngModel)]="form.hatsPer100" />
-          <small>
-            In jedem Block von 100 Scans (1–100, 101–200, …) werden genau so viele Gewinner zufällig
-            gezogen. Beispiel: 10 → im Schnitt gewinnt jede zehnte Person.
-          </small>
-        </label>
+            <label class="field">
+              <span>Ergebnis anzeigen für (Sekunden)</span>
+              <input name="resultSeconds" type="number" min="2" [(ngModel)]="form.resultSeconds" />
+            </label>
+
+            <label class="field">
+              <span>Sprache</span>
+              <select name="language" [(ngModel)]="form.language">
+                <option value="de">Deutsch</option>
+                <option value="en">English</option>
+              </select>
+            </label>
+
+            <label class="field checkbox">
+              <input
+                type="checkbox"
+                name="showRemoteResults"
+                [(ngModel)]="form.showRemoteResults"
+              />
+              <span>Ergebnisse aller Stationen auf den großen Bildschirmen anzeigen</span>
+            </label>
+
+            <h3 class="wide">Texte der Idle-Animation</h3>
+
+            <label class="field wide">
+              <span>Überschriften (eine pro Zeile, wechseln automatisch)</span>
+              <textarea
+                name="idleHeadlines"
+                rows="4"
+                [(ngModel)]="headlinesText"
+                [placeholder]="defaultHeadlines"
+              ></textarea>
+              <small>Leer lassen für die Standardtexte in der gewählten Sprache.</small>
+            </label>
+
+            <label class="field">
+              <span>Unterzeile</span>
+              <input
+                name="idleSubline"
+                [(ngModel)]="form.idleSubline"
+                placeholder="Standard: Erklärung der Gewinnregel"
+              />
+            </label>
+
+            <label class="field">
+              <span>Button-Text</span>
+              <input name="idleCta" [(ngModel)]="form.idleCta" [placeholder]="defaultCta" />
+            </label>
+
+            <h3 class="wide">PIN / Passwort für diese Seite</h3>
+            <p class="muted wide">
+              Status: <strong>{{ pinSet() ? 'gesetzt' : 'nicht gesetzt' }}</strong
+              >. Ist eine PIN gesetzt, wird sie bei jedem Öffnen der Konfiguration abgefragt
+              @if (!isLocal) {
+                – auf allen Stationen, die mit diesem Backend verbunden sind
+              }
+              .
+            </p>
+            <label class="field">
+              <span>{{ pinSet() ? 'Neue PIN / neues Passwort' : 'PIN / Passwort setzen' }}</span>
+              <input
+                name="newPin"
+                type="password"
+                [(ngModel)]="newPin"
+                autocomplete="new-password"
+                [disabled]="removePin"
+              />
+            </label>
+            <label class="field">
+              <span>Wiederholen</span>
+              <input
+                name="newPinRepeat"
+                type="password"
+                [(ngModel)]="newPinRepeat"
+                autocomplete="new-password"
+                [disabled]="removePin"
+              />
+            </label>
+            @if (pinSet()) {
+              <label class="field checkbox wide">
+                <input type="checkbox" name="removePin" [(ngModel)]="removePin" />
+                <span>PIN entfernen (Konfiguration ohne PIN zugänglich)</span>
+              </label>
+            }
+          </div>
+        </section>
       }
 
-      <label class="field">
-        <span>Anzahl Hüte (0 = unbegrenzt)</span>
-        <input name="hatsTotal" type="number" min="0" [(ngModel)]="form.hatsTotal" />
-      </label>
-
-      <label class="field">
-        <span>Idle-Animation nach (Sekunden, 0 = aus)</span>
-        <input name="idleSeconds" type="number" min="0" [(ngModel)]="form.idleSeconds" />
-      </label>
-
-      <label class="field">
-        <span>Ergebnis anzeigen für (Sekunden)</span>
-        <input name="resultSeconds" type="number" min="2" [(ngModel)]="form.resultSeconds" />
-      </label>
-
-      <label class="field">
-        <span>Scanner: max. Pause zwischen Zeichen (ms)</span>
-        <input
-          name="scannerKeyTimeoutMs"
-          type="number"
-          min="10"
-          [(ngModel)]="form.scannerKeyTimeoutMs"
-        />
-        <small>Langsamere Eingaben gelten als normale Tastatur und werden ignoriert.</small>
-      </label>
-
-      <label class="field">
-        <span>Sprache</span>
-        <select name="language" [(ngModel)]="form.language">
-          <option value="de">Deutsch</option>
-          <option value="en">English</option>
-        </select>
-      </label>
-
-      <h2 class="wide">Texte der Idle-Animation</h2>
-
-      <label class="field wide">
-        <span>Überschriften (eine pro Zeile, wechseln automatisch)</span>
-        <textarea
-          name="idleHeadlines"
-          rows="4"
-          [(ngModel)]="headlinesText"
-          [placeholder]="defaultHeadlines"
-        ></textarea>
-        <small>Leer lassen für die Standardtexte in der gewählten Sprache.</small>
-      </label>
-
-      <label class="field">
-        <span>Unterzeile</span>
-        <input
-          name="idleSubline"
-          [(ngModel)]="form.idleSubline"
-          placeholder="Standard: Erklärung der Gewinnregel"
-        />
-      </label>
-
-      <label class="field">
-        <span>Button-Text</span>
-        <input name="idleCta" [(ngModel)]="form.idleCta" [placeholder]="defaultCta" />
-      </label>
-
-      <div class="actions wide">
+      <div class="actions sticky">
         <button type="submit" class="btn btn-primary">Speichern</button>
         <button type="button" class="btn btn-secondary" (click)="healthcheck()">Healthcheck</button>
         @switch (health()) {
@@ -140,98 +267,102 @@
             <span class="status">Lokaler Modus – kein Backend</span>
           }
         }
-        @if (saved()) {
-          <span class="status ok">Gespeichert</span>
+        @if (message(); as m) {
+          <span class="status" [class.ok]="m.ok" [class.bad]="!m.ok">{{ m.text }}</span>
         }
       </div>
     </form>
-  </section>
+  }
 
-  <section class="card">
-    <h2>Scanner-Test</h2>
-    <p>
-      Scanne einen beliebigen Code, um die Ausgabe des Scanners zu prüfen. Auf dieser Seite wird
-      nichts gespeichert.
-    </p>
-    <div class="scan-output">
-      <span>Letzter Scan:</span>
-      <code>{{ lastScan() || '–' }}</code>
-      @if (lastScan()) {
-        <app-qr-code class="scan-qr" [value]="lastScan()" [size]="120" />
-      }
-    </div>
-    <form class="row" (ngSubmit)="simulateScan()">
-      <input name="testCode" [(ngModel)]="testCode" placeholder="Code manuell eingeben" />
-      <button type="submit" class="btn btn-tertiary">Anzeigen</button>
-    </form>
-  </section>
+  @if (access() === 'open') {
+    <section class="card">
+      <h2>Scanner-Test</h2>
+      <p>
+        Scanne einen beliebigen Code, um die Ausgabe des Scanners zu prüfen. Auf dieser Seite wird
+        nichts gespeichert.
+      </p>
+      <div class="scan-output">
+        <span>Letzter Scan:</span>
+        <code>{{ lastScan() || '–' }}</code>
+        @if (lastScan()) {
+          <app-qr-code class="scan-qr" [value]="lastScan()" [size]="120" />
+        }
+      </div>
+      <form class="row" (ngSubmit)="simulateScan()">
+        <input name="testCode" [(ngModel)]="testCode" placeholder="Code manuell eingeben" />
+        <button type="submit" class="btn btn-tertiary">Anzeigen</button>
+      </form>
+    </section>
 
-  <section class="card">
-    <div class="card-head">
-      <h2>Erfasste Codes ({{ scans().length }})</h2>
-      <div class="row">
-        <button type="button" class="btn btn-tertiary" (click)="loadScans()">Aktualisieren</button>
-        <button
-          type="button"
-          class="btn btn-secondary"
-          (click)="exportCsv()"
-          [disabled]="!scans().length"
-        >
-          CSV-Export
-        </button>
-        @if (isLocal) {
-          <button type="button" class="btn btn-danger" (click)="clearLocal()">
-            Lokale Daten löschen
+    <section class="card">
+      <div class="card-head">
+        <h2>Erfasste Codes ({{ scans().length }})</h2>
+        <div class="row">
+          <button type="button" class="btn btn-tertiary" (click)="loadScans()">
+            Aktualisieren
           </button>
-        }
-      </div>
-    </div>
-    <p class="muted">Quelle: {{ isLocal ? 'Browser (local storage)' : form.backend }}</p>
-    @if (scansError()) {
-      <p class="status bad">{{ scansError() }}</p>
-    }
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>QR</th>
-            <th>Code</th>
-            <th>Gewinn</th>
-            <th>Station</th>
-            <th>Zeitpunkt</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (scan of scans(); track scan.number) {
-            <tr [class.winner]="scan.winner">
-              <td>{{ scan.number }}</td>
-              <td>
-                <button
-                  type="button"
-                  class="qr-thumb"
-                  (click)="selected.set(scan)"
-                  title="QR-Code vergrößern"
-                >
-                  <app-qr-code [value]="scan.code" [size]="56" />
-                </button>
-              </td>
-              <td>
-                <code>{{ scan.code }}</code>
-              </td>
-              <td>{{ scan.winner ? '🎩 Ja' : 'Nein' }}</td>
-              <td>{{ scan.station }}</td>
-              <td>{{ scan.timestamp | date: 'dd.MM.yyyy HH:mm:ss' }}</td>
-            </tr>
-          } @empty {
-            <tr>
-              <td colspan="6" class="muted">Noch keine Scans.</td>
-            </tr>
+          <button
+            type="button"
+            class="btn btn-secondary"
+            (click)="exportCsv()"
+            [disabled]="!scans().length"
+          >
+            CSV-Export
+          </button>
+          @if (isLocal) {
+            <button type="button" class="btn btn-danger" (click)="clearLocal()">
+              Lokale Daten löschen
+            </button>
           }
-        </tbody>
-      </table>
-    </div>
-  </section>
+        </div>
+      </div>
+      <p class="muted">Quelle: {{ isLocal ? 'Browser (local storage)' : form.backend }}</p>
+      @if (scansError()) {
+        <p class="status bad">{{ scansError() }}</p>
+      }
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>QR</th>
+              <th>Code</th>
+              <th>Gewinn</th>
+              <th>Station</th>
+              <th>Zeitpunkt</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (scan of scans(); track scan.number) {
+              <tr [class.winner]="scan.winner">
+                <td>{{ scan.number }}</td>
+                <td>
+                  <button
+                    type="button"
+                    class="qr-thumb"
+                    (click)="selected.set(scan)"
+                    title="QR-Code vergrößern"
+                  >
+                    <app-qr-code [value]="scan.code" [size]="56" />
+                  </button>
+                </td>
+                <td>
+                  <code>{{ scan.code }}</code>
+                </td>
+                <td>{{ scan.winner ? '🎩 Ja' : 'Nein' }}</td>
+                <td>{{ scan.station }}</td>
+                <td>{{ scan.timestamp | date: 'dd.MM.yyyy HH:mm:ss' }}</td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="6" class="muted">Noch keine Scans.</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+  }
 </main>
 
 @if (selected(); as scan) {

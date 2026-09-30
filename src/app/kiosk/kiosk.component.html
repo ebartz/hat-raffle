@@ -1,4 +1,9 @@
-<div class="kiosk" [class]="'state-' + state()" (pointerdown)="wake()">
+<div
+  class="kiosk"
+  [class]="'state-' + state()"
+  [class.camera-mode]="cameraMode()"
+  (pointerdown)="wake()"
+>
   <header class="topbar">
     <div class="brand">
       <app-hat class="brand-hat" [shadow]="false" />
@@ -7,23 +12,34 @@
     <a class="config-link" routerLink="/config" aria-label="Einstellungen">⚙</a>
   </header>
 
-  <main class="stage">
+  <main class="stage" (click)="tapResult()">
+    @if (cameraMode()) {
+      <section class="panel camera-panel" [class.is-hidden]="state() !== 'ready'">
+        <h1>{{ i18n.t('cameraTitle') }}</h1>
+        <app-camera-scanner [active]="state() === 'ready'" (scanned)="onScan($event)" />
+      </section>
+    }
+    @if (remoteStation() && state() !== 'ready') {
+      <div class="remote-tag">{{ i18n.t('remoteStation', { s: remoteStation()! }) }}</div>
+    }
     @switch (state()) {
       @case ('ready') {
-        <section class="panel ready">
-          <div class="copy">
-            <p class="eyebrow">Hat Raffle</p>
-            <h1>{{ i18n.t('readyTitle') }}</h1>
-            <p class="lead">{{ i18n.t('readySubtitle') }}</p>
-            <p class="hint">
-              <span class="scan-icon" aria-hidden="true"><span class="laser"></span></span>
-              {{ i18n.t('readyHint') }}
-            </p>
-          </div>
-          <div class="visual">
-            <app-hat class="float-hat" />
-          </div>
-        </section>
+        @if (!cameraMode()) {
+          <section class="panel ready">
+            <div class="copy">
+              <p class="eyebrow">Hat Raffle</p>
+              <h1>{{ i18n.t('readyTitle') }}</h1>
+              <p class="lead">{{ i18n.t('readySubtitle') }}</p>
+              <p class="hint">
+                <span class="scan-icon" aria-hidden="true"><span class="laser"></span></span>
+                {{ i18n.t('readyHint') }}
+              </p>
+            </div>
+            <div class="visual">
+              <app-hat class="float-hat" />
+            </div>
+          </section>
+        }
       }
       @case ('processing') {
         <section class="panel center">

@@ -1,0 +1,38 @@
+<div class="camera" [class.flash]="flash()">
+  <video #video playsinline muted autoplay></video>
+  <div class="frame" aria-hidden="true"><span class="laser"></span></div>
+
+  @switch (state()) {
+    @case ('starting') {
+      <div class="overlay">{{ i18n.t('cameraStarting') }}</div>
+    }
+    @case ('insecure') {
+      <div class="overlay error">{{ i18n.t('cameraInsecure') }}</div>
+    }
+    @case ('denied') {
+      <div class="overlay error">
+        {{ i18n.t('cameraDenied') }}
+        <button type="button" (click)="start()">{{ i18n.t('cameraRetry') }}</button>
+      </div>
+    }
+    @case ('error') {
+      <div class="overlay error">
+        {{ i18n.t('cameraError') }}
+        <button type="button" (click)="start()">{{ i18n.t('cameraRetry') }}</button>
+      </div>
+    }
+  }
+</div>
+
+<p class="hint">{{ i18n.t('cameraHint') }}</p>
+
+<form class="manual" (ngSubmit)="submitManual()">
+  <input
+    name="manualCode"
+    [(ngModel)]="manualCode"
+    [placeholder]="i18n.t('manualPlaceholder')"
+    autocomplete="off"
+    autocapitalize="off"
+  />
+  <button type="submit">OK</button>
+</form>

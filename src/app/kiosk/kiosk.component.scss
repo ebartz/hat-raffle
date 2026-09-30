@@ -364,6 +364,91 @@
   }
 }
 
+/* ---------- camera mode (phones) ---------- */
+.camera-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  h1 {
+    font-size: clamp(1.8rem, 6vw, 2.6rem);
+    margin-bottom: 1rem;
+  }
+}
+
+.is-hidden {
+  display: none !important;
+}
+
+.remote-tag {
+  position: absolute;
+  top: 1.2rem;
+  right: 1.5rem;
+  z-index: 1;
+  padding: 0.4rem 1rem;
+  font-family: $font-display;
+  font-weight: 500;
+  color: $rh-white;
+  background: $rh-gray-80;
+  border-radius: 999px;
+}
+
+.camera-mode {
+  height: 100dvh;
+
+  .topbar {
+    height: 56px;
+    padding: 0 1rem;
+  }
+
+  .brand-hat {
+    width: 44px;
+  }
+
+  .stage {
+    align-items: flex-start;
+    padding: 1rem;
+    overflow-y: auto;
+  }
+
+  .panel h1 {
+    font-size: clamp(2rem, 9vw, 3rem);
+  }
+
+  .panel .lead {
+    font-size: 1.15rem;
+  }
+
+  .win-hat-wrap {
+    width: min(70vw, 360px);
+  }
+
+  .number-circle {
+    min-width: 120px;
+    height: 120px;
+    font-size: 3rem;
+  }
+
+  .alert .alert-icon {
+    width: 110px;
+    height: 110px;
+    font-size: 4.5rem;
+  }
+
+  .stats {
+    gap: 1.5rem;
+    padding: 0.6rem;
+
+    .value {
+      font-size: 1.4rem;
+    }
+
+    .label {
+      font-size: 0.9rem;
+    }
+  }
+}
+
 @media (max-width: 900px) {
   .ready {
     grid-template-columns: 1fr;
