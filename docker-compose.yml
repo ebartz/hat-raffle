@@ -1,0 +1,31 @@
+# Starts backend and frontend as two containers:
+#   docker compose up -d --build
+# Then open http://<host>:8080 on every station.
+services:
+  backend:
+    build: ./server
+    restart: unless-stopped
+    environment:
+      # Optional: set API_KEY (e.g. in a .env file); every station must then enter it in the config.
+      API_KEY: ${API_KEY:-}
+      # Requests arrive via the nginx proxy: use X-Forwarded-For for the PIN lockout.
+      TRUST_PROXY: '1'
+    volumes:
+      - raffle-data:/data
+    ports:
+      - '3000:3000' # optional: direct access to the backend
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    restart: unless-stopped
+    environment:
+      BACKEND_URL: http://backend:3000
+    depends_on:
+      - backend
+    ports:
+      - '8080:80'
+
+volumes:
+  raffle-data:

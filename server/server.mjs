@@ -11,6 +11,7 @@
 //   STATIC_DIR    serve the built Angular app from here (default ../dist/hat-raffle/browser)
 //   TLS_CERT      path to a certificate (PEM) – enables HTTPS, needed for the phone camera
 //   TLS_KEY       path to the matching private key (PEM)
+//   TRUST_PROXY   set to 1 behind a reverse proxy to use X-Forwarded-For as client address
 import { createReadStream, existsSync, readFileSync, statSync } from 'node:fs';
 import { createServer as createHttpServer } from 'node:http';
 import { createServer as createHttpsServer } from 'node:https';
@@ -25,6 +26,7 @@ const PORT = Number(env.PORT ?? 3000);
 const DATA_FILE = resolve(env.DATA_FILE ?? join(here, 'data', 'scans.json'));
 const CONFIG_FILE = resolve(env.CONFIG_FILE ?? join(dirname(DATA_FILE), 'config.json'));
 const API_KEY = env.API_KEY ?? '';
+const TRUST_PROXY = env.TRUST_PROXY === '1' || env.TRUST_PROXY === 'true';
 const CORS_ORIGIN = env.CORS_ORIGIN ?? '*';
 const STATIC_DIR = resolve(env.STATIC_DIR ?? join(here, '..', 'dist', 'hat-raffle', 'browser'));
 const MAX_BODY = 16 * 1024;
@@ -49,7 +51,12 @@ const MIME = {
 export function createHandler(
   store,
   config,
-  { apiKey = API_KEY, corsOrigin = CORS_ORIGIN, staticDir = STATIC_DIR } = {},
+  {
+    apiKey = API_KEY,
+    corsOrigin = CORS_ORIGIN,
+    staticDir = STATIC_DIR,
+    trustProxy = TRUST_PROXY,
+  } = {},
 ) {
   const clients = new Set();
   const pinFails = new Map(); // ip -> { count, until }
@@ -66,7 +73,8 @@ export function createHandler(
 
   /** Admin endpoints need the config PIN once one is set. Brute force is slowed down per IP. */
   const requirePin = (req, res, pin = req.headers['x-config-pin']) => {
-    const ip = req.socket.remoteAddress ?? '';
+    const forwarded = trustProxy ? String(req.headers['x-forwarded-for'] ?? '').split(',')[0] : '';
+    const ip = forwarded.trim() || req.socket.remoteAddress || '';
     const fails = pinFails.get(ip);
     if (fails && fails.until > Date.now()) {
       send(res, 429, { error: 'too many attempts, try again later' });
