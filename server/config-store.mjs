@@ -10,7 +10,7 @@ export const DEFAULT_CONFIG = {
   hatsTotal: 0,
   idleSeconds: 30,
   resultSeconds: 8,
-  language: 'de',
+  language: 'en',
   idleHeadlines: [],
   idleSubline: '',
   idleCta: '',
@@ -32,7 +32,7 @@ export function sanitizeConfig(input, base = DEFAULT_CONFIG) {
     hatsTotal: int(c.hatsTotal, 0, 1_000_000, 0),
     idleSeconds: int(c.idleSeconds, 0, 86_400, DEFAULT_CONFIG.idleSeconds),
     resultSeconds: int(c.resultSeconds, 1, 600, DEFAULT_CONFIG.resultSeconds),
-    language: c.language === 'en' ? 'en' : 'de',
+    language: c.language === 'de' ? 'de' : 'en',
     idleHeadlines: (Array.isArray(c.idleHeadlines) ? c.idleHeadlines : [])
       .map((h) => text(h).trim())
       .filter(Boolean)

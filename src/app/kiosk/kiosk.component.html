@@ -9,13 +9,16 @@
       <app-hat class="brand-hat" [shadow]="false" />
       <span class="brand-name">Win a <strong>Fedora</strong></span>
     </div>
-    <a class="config-link" routerLink="/config" aria-label="Einstellungen">⚙</a>
+    <a class="config-link" routerLink="/config" aria-label="Settings">⚙</a>
   </header>
 
   <main class="stage" (click)="tapResult()">
     @if (cameraMode()) {
       <section class="panel camera-panel" [class.is-hidden]="state() !== 'ready'">
         <h1>{{ i18n.t('cameraTitle') }}</h1>
+        @if (vibrationLocked()) {
+          <button type="button" class="vibration-hint">{{ i18n.t('enableVibration') }}</button>
+        }
         <app-camera-scanner [active]="state() === 'ready'" (scanned)="onScan($event)" />
       </section>
     }

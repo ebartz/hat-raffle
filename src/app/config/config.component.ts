@@ -101,13 +101,13 @@ export class ConfigComponent implements OnInit, OnDestroy {
         this.access.set('open');
         this.loadScans();
       } else {
-        this.unlockError.set('Falsche PIN bzw. falsches Passwort.');
+        this.unlockError.set('Wrong PIN or password.');
       }
     } catch (err) {
       this.unlockError.set(
         (err as { status?: number }).status === 429
-          ? 'Zu viele Fehlversuche – bitte kurz warten.'
-          : 'Backend nicht erreichbar.',
+          ? 'Too many attempts – please wait a moment.'
+          : 'Backend not reachable.',
       );
     }
   }
@@ -135,7 +135,7 @@ export class ConfigComponent implements OnInit, OnDestroy {
       this.health.set('unknown');
       await this.checkAccess();
       this.showMessage(
-        connectionChanged ? 'Verbindung gespeichert – Einstellungen neu geladen.' : 'Gespeichert.',
+        connectionChanged ? 'Connection saved – settings reloaded.' : 'Saved.',
         true,
       );
       return;
@@ -146,10 +146,10 @@ export class ConfigComponent implements OnInit, OnDestroy {
       pinChange = null;
     } else if (this.newPin || this.newPinRepeat) {
       if (this.newPin.length < MIN_PIN_LENGTH) {
-        return this.showMessage(`Die PIN muss mindestens ${MIN_PIN_LENGTH} Zeichen haben.`, false);
+        return this.showMessage(`The PIN must have at least ${MIN_PIN_LENGTH} characters.`, false);
       }
       if (this.newPin !== this.newPinRepeat) {
-        return this.showMessage('Die PINs stimmen nicht überein.', false);
+        return this.showMessage('The PINs do not match.', false);
       }
       pinChange = this.newPin;
     }
@@ -173,16 +173,13 @@ export class ConfigComponent implements OnInit, OnDestroy {
     } catch (err) {
       const status = (err as { status?: number }).status;
       return this.showMessage(
-        status === 403 ? 'PIN ungültig – bitte Seite neu öffnen.' : 'Backend nicht erreichbar.',
+        status === 403 ? 'Invalid PIN – please reopen the page.' : 'Backend not reachable.',
         false,
       );
     }
     if (pinChange !== undefined) this.pinSet.set(pinChange !== null);
     this.resetForm();
-    this.showMessage(
-      this.isLocal ? 'Gespeichert.' : 'Gespeichert und an alle Stationen verteilt.',
-      true,
-    );
+    this.showMessage(this.isLocal ? 'Saved.' : 'Saved and sent to all stations.', true);
   }
 
   protected async healthcheck(): Promise<void> {
@@ -204,7 +201,7 @@ export class ConfigComponent implements OnInit, OnDestroy {
       this.scans.set((await this.store.list(this.lock.pin())).slice().reverse());
     } catch {
       this.scans.set([]);
-      this.scansError.set('Einträge konnten nicht vom Backend geladen werden.');
+      this.scansError.set('Could not load the scans from the backend.');
     }
   }
 
@@ -223,7 +220,7 @@ export class ConfigComponent implements OnInit, OnDestroy {
   }
 
   protected clearLocal(): void {
-    if (confirm('Alle lokal gespeicherten Scans wirklich löschen?')) {
+    if (confirm('Really delete all locally stored scans?')) {
       this.store.clearLocal();
       this.loadScans();
     }
