@@ -15,7 +15,7 @@ share one counter, the settings and the results.
 | ![Start screen](docs/screenshots/kiosk-ready.png) | ![Winner](docs/screenshots/kiosk-win.png)                       |
 | **Idle animation** draws visitors to the booth    | **Live result** from another station (here: a phone)            |
 | ![Idle animation](docs/screenshots/attract.png)   | ![Result from another station](docs/screenshots/remote-win.png) |
-| **Not a prime** – no Fedora this time             | **Duplicate scan** is detected                                  |
+| **No win** this time                              | **Duplicate scan** is detected                                  |
 | ![No win](docs/screenshots/kiosk-lose.png)        | ![Duplicate](docs/screenshots/kiosk-duplicate.png)              |
 
 | Phone: camera scan                                                                     | Phone: winner                                                                  | Settings locked with a PIN                             |
@@ -143,6 +143,9 @@ and submit it with Enter.
 
 In backend mode the server hands out the participant numbers, so several stations share one
 counter.
+
+The visitor screens never reveal the rule: they only say whether someone won. The rule is only
+visible on the settings page.
 
 ## Backend
 

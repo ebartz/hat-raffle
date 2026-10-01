@@ -63,14 +63,8 @@ export class KioskComponent implements OnInit, OnDestroy {
   protected readonly resultText = computed(() => {
     const n = this.result()?.record?.number ?? '';
     const won = this.state() === 'win';
-    switch (this.settings().winnerRule) {
-      case 'code':
-        return this.i18n.t(won ? 'winSubtitleCode' : 'loseSubtitleCode');
-      case 'random':
-        return this.i18n.t(won ? 'winSubtitleRandom' : 'loseSubtitleRandom', { n });
-      default:
-        return this.i18n.t(won ? 'winSubtitle' : 'loseSubtitle', { n });
-    }
+    // Deliberately says nothing about how winners are chosen.
+    return this.i18n.t(won ? 'winSubtitle' : 'loseSubtitle', { n });
   });
 
   private readonly subs = new Subscription();

@@ -75,6 +75,10 @@ export class ConfigComponent implements OnInit, OnDestroy {
     return this.i18n.texts().idleHeadlines.join('\n');
   }
 
+  protected get defaultSubline(): string {
+    return this.i18n.t('idleSubline');
+  }
+
   protected get defaultCta(): string {
     return this.i18n.t('idleCta');
   }

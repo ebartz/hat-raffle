@@ -37,10 +37,7 @@ export class AttractComponent implements OnInit, OnDestroy {
   protected readonly subline = computed(() => {
     const custom = this.settings().idleSubline.trim();
     if (custom) return custom;
-    const rule = this.settings().winnerRule;
-    return this.i18n.t(
-      rule === 'code' ? 'idleRuleCode' : rule === 'random' ? 'idleRuleRandom' : 'idleRuleCounter',
-    );
+    return this.i18n.t('idleSubline');
   });
   protected readonly cta = computed(() => this.settings().idleCta.trim() || this.i18n.t('idleCta'));
   protected readonly floatingHats: FloatingHat[] = Array.from({ length: 14 }, () => ({
