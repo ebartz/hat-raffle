@@ -81,6 +81,10 @@ test('healthz', async () => {
   assert.equal((await res.json()).app, 'hat-raffle');
 });
 
+test('english is the default language', async () => {
+  assert.equal((await (await api('/api/config')).json()).language, 'en');
+});
+
 test('api key is required', async () => {
   assert.equal((await api('/api/stats', { headers: { 'X-Api-Key': '' } })).status, 401);
 });

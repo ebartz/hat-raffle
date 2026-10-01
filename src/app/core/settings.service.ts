@@ -1,7 +1,7 @@
 import { Injectable, signal } from '@angular/core';
 
 export type WinnerRule = 'counter' | 'code' | 'random';
-export type Language = 'de' | 'en';
+export type Language = 'en' | 'de';
 export type InputMode = 'auto' | 'scanner' | 'camera';
 
 /** Settings that belong to one device (scan station). */
@@ -55,7 +55,7 @@ export const DEFAULT_SHARED_SETTINGS: SharedSettings = {
   hatsTotal: 0,
   idleSeconds: 30,
   resultSeconds: 8,
-  language: 'de',
+  language: 'en',
   idleHeadlines: [],
   idleSubline: '',
   idleCta: '',

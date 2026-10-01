@@ -1,7 +1,17 @@
-import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
+import {
+  Component,
+  OnDestroy,
+  OnInit,
+  computed,
+  effect,
+  inject,
+  signal,
+  untracked,
+} from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { isMobileDevice } from '../core/device';
+import { HapticsService } from '../core/haptics.service';
 import { I18nService } from '../core/i18n.service';
 import { RemoteScanEvent, ScanResult } from '../core/models';
 import { RealtimeService } from '../core/realtime.service';
@@ -29,6 +39,7 @@ export class KioskComponent implements OnInit, OnDestroy {
   private readonly settingsService = inject(SettingsService);
   private readonly celebration = inject(CelebrationService);
   private readonly realtime = inject(RealtimeService);
+  private readonly haptics = inject(HapticsService);
   private readonly isMobile = isMobileDevice();
 
   protected readonly settings = this.settingsService.settings;
@@ -42,6 +53,8 @@ export class KioskComponent implements OnInit, OnDestroy {
     const mode = this.settings().inputMode;
     return mode === 'camera' || (mode === 'auto' && this.isMobile);
   });
+  /** Android only vibrates after the first touch – ask for one in camera mode. */
+  protected readonly vibrationLocked = signal(this.haptics.needsUserGesture);
   protected readonly hatsLeft = computed(() => {
     const total = this.settings().hatsTotal;
     return total > 0 ? Math.max(0, total - this.store.stats().winners) : null;
@@ -65,6 +78,17 @@ export class KioskComponent implements OnInit, OnDestroy {
   private idleTimer?: number;
   private statsInterval?: number;
 
+  constructor() {
+    // The shared settings arrive from the backend after start-up: restart the idle timer when
+    // the idle time changes, so a new station does not wait for the default first.
+    effect(() => {
+      this.settings().idleSeconds;
+      untracked(() => {
+        if (this.state() === 'ready' && !this.idle()) this.armIdleTimer();
+      });
+    });
+  }
+
   ngOnInit(): void {
     this.subs.add(this.scanner.scans$.subscribe((code) => this.onScan(code)));
     this.subs.add(this.realtime.remoteScans$.subscribe((event) => this.onRemoteScan(event)));
@@ -87,6 +111,7 @@ export class KioskComponent implements OnInit, OnDestroy {
 
   /** Any touch or click wakes the screen up from the attract loop. */
   protected wake(): void {
+    this.vibrationLocked.set(false);
     if (this.idle()) {
       this.idle.set(false);
       this.armIdleTimer();
@@ -107,9 +132,11 @@ export class KioskComponent implements OnInit, OnDestroy {
       this.result.set(result);
       if (result.status === 'duplicate') {
         this.state.set('duplicate');
+        this.haptics.warning();
       } else if (result.record.winner) {
         this.state.set('win');
         this.celebration.celebrate();
+        this.haptics.win();
       } else {
         this.state.set(result.soldOut ? 'soldout' : 'lose');
       }
@@ -117,6 +144,7 @@ export class KioskComponent implements OnInit, OnDestroy {
       console.error('Scan could not be stored', err);
       this.result.set(null);
       this.state.set('error');
+      this.haptics.warning();
     }
 
     this.scheduleReset();

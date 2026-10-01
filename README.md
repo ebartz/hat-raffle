@@ -1,78 +1,82 @@
 # Win a Fedora 🎩
 
-Gewinnspiel für den Messestand: Das Standpersonal scannt den Ausweis der Besucher mit einem
-Barcode-/QR-Scanner. Ist die Teilnehmernummer eine **Primzahl** (oder wird die Person per
-**Zufall** gezogen), gewinnt sie eine rote **Fedora** – mit Konfetti und fliegenden Fedoras. Jeder
-Ausweis kann nur einmal teilnehmen.
+A raffle for your trade show booth: the booth staff scans the visitor's badge with a barcode/QR
+scanner. If the participant number is a **prime number** (or the person is drawn at **random**),
+they win a red **Fedora** – with confetti and flying Fedoras. Every badge can take part only once.
 
-Läuft komplett im Browser (Angular), optional mit einem kleinen Node-Backend, über das sich
-beliebig viele Scan-Stationen (Laptops mit USB-Handscanner, Handys und Tablets mit Kamera)
-einen Zähler, die Einstellungen und die Ergebnisse teilen.
+Runs entirely in the browser (Angular), optionally with a small Node backend through which any
+number of scan stations (laptops with a USB hand scanner, phones and tablets with their camera)
+share one counter, the settings and the results.
 
 ## Screenshots
 
-| Startbildschirm (PC mit USB-Handscanner)             | Gewinn: Konfetti und fliegende Fedoras                             |
-| ---------------------------------------------------- | ------------------------------------------------------------------ |
-| ![Startbildschirm](docs/screenshots/kiosk-ready.png) | ![Gewinn](docs/screenshots/kiosk-win.png)                          |
-| **Idle-Animation**, lockt Besucher an den Stand      | **Live-Ergebnis** einer anderen Station (hier: vom Handy)          |
-| ![Idle-Animation](docs/screenshots/attract.png)      | ![Ergebnis einer anderen Station](docs/screenshots/remote-win.png) |
-| **Keine Primzahl** – diesmal keine Fedora            | **Doppelter Scan** wird erkannt                                    |
-| ![Kein Gewinn](docs/screenshots/kiosk-lose.png)      | ![Duplikat](docs/screenshots/kiosk-duplicate.png)                  |
+| Start screen (PC with USB hand scanner)           | Winner: confetti and flying Fedoras                             |
+| ------------------------------------------------- | --------------------------------------------------------------- |
+| ![Start screen](docs/screenshots/kiosk-ready.png) | ![Winner](docs/screenshots/kiosk-win.png)                       |
+| **Idle animation** draws visitors to the booth    | **Live result** from another station (here: a phone)            |
+| ![Idle animation](docs/screenshots/attract.png)   | ![Result from another station](docs/screenshots/remote-win.png) |
+| **Not a prime** – no Fedora this time             | **Duplicate scan** is detected                                  |
+| ![No win](docs/screenshots/kiosk-lose.png)        | ![Duplicate](docs/screenshots/kiosk-duplicate.png)              |
 
-| Handy: Kamera-Scan                                                                        | Handy: Gewinn                                                                     | Config mit PIN gesperrt                                        |
-| ----------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- | -------------------------------------------------------------- |
-| <img src="docs/screenshots/phone-camera.png" alt="Kamera-Scan auf dem Handy" width="260"> | <img src="docs/screenshots/phone-win.png" alt="Gewinn auf dem Handy" width="260"> | ![Gesperrte Konfiguration](docs/screenshots/config-locked.png) |
+| Phone: camera scan                                                                     | Phone: winner                                                                  | Settings locked with a PIN                             |
+| -------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ | ------------------------------------------------------ |
+| <img src="docs/screenshots/phone-camera.png" alt="Camera scan on a phone" width="260"> | <img src="docs/screenshots/phone-win.png" alt="Winner on a phone" width="260"> | ![Locked settings](docs/screenshots/config-locked.png) |
 
 <details>
-<summary>Konfigurationsseite (ganze Seite)</summary>
+<summary>Settings page (full page)</summary>
 
-![Konfiguration](docs/screenshots/config.png)
+![Settings](docs/screenshots/config.png)
 
 </details>
 
 ## Features
 
-- **Kiosk-Ansicht** (`/#/`) im Red-Hat-Look (Red Hat Display/Text, #EE0000, Schwarz/Weiß)
-- **Barcode-Scanner als Tastatur**: schnelle Eingabe + Enter wird als Scan erkannt, normales Tippen wird ignoriert
-- **Kamera-Scan auf Handy/Tablet**: iPhone, iPad und Android werden erkannt und scannen QR- und
-  Barcodes direkt mit der Rückkamera (manuelle Eingabe als Fallback). Dort entfällt die Idle-Animation.
-- **Mehrere Stationen**: das Backend vergibt die Teilnehmernummern zentral (nie doppelt), verteilt
-  Config-Änderungen sofort an alle Stationen und zeigt Ergebnisse live auf allen großen Bildschirmen
-- **Duplikaterkennung**: bereits gescannte Ausweise werden nicht erneut gezählt, es erscheint ein Hinweis
-- **Gewinnanimation**: die Fedora fliegt ein, Konfetti in Red-Hat-Farben, Fedoras regnen vom Himmel
-- **Idle-/Attract-Modus**: nach X Sekunden ohne Scan läuft eine Animation, die Besucher an den Stand lockt;
-  Überschriften, Unterzeile und Button-Text sind in der Config anpassbar
-- **Fedora-Kontingent**: optional begrenzte Anzahl Fedoras, danach „alle Fedoras vergeben“
-- **Config-Seite** (`/#/config`, wie bei [bashbrawl](https://github.com/jggoebel/bashbrawl)):
-  - _Dieses Gerät_: Backend-URL, API-Key, Stationsname, Scan-Methode (automatisch/USB/Kamera)
-  - _Gewinnspiel_ (im Backend gespeichert, für alle Stationen gleich): Gewinnregel, Anzahl Fedoras,
-    Timings, Sprache (DE/EN), Idle-Texte, Ergebnisse anderer Stationen anzeigen, PIN/Passwort
-  - Healthcheck, Scanner-Test, Liste aller erfassten Codes (auch als QR-Code), CSV-Export
-- **PIN/Passwort für die Config**: einmal gesetzt, wird sie bei jedem Öffnen der Config verlangt
-  (mit Backend auf allen Stationen; gespeichert als scrypt-Hash, 5 Fehlversuche → 30 s Sperre)
-- **Backend** ohne Abhängigkeiten (`server/server.mjs`): speichert Scans und Config als JSON-Dateien
+- **Kiosk view** (`/#/`) in the Red Hat look and feel (Red Hat Display/Text, #EE0000, black/white)
+- **Barcode scanner as keyboard**: fast input followed by Enter counts as a scan, normal typing is
+  ignored
+- **Camera scanning on phones and tablets**: iPhone, iPad and Android are detected and scan QR codes
+  and barcodes with the back camera (manual input as a fallback). The idle animation is skipped
+  there.
+- **Vibration on phones**: a long buzz for a winner, a short one when a code is recognised, a double
+  buzz for duplicates and errors
+- **Multiple stations**: the backend hands out the participant numbers centrally (never twice),
+  pushes settings changes to every station right away and shows results live on all big screens
+- **Duplicate detection**: badges that were already scanned are not counted again, a notice is shown
+- **Winner animation**: the Fedora flies in, confetti in Red Hat colours, Fedoras rain from the sky
+- **Idle/attract mode**: after X seconds without a scan an animation draws visitors to the booth;
+  headlines, subline and button text can be changed in the settings
+- **Fedora stock**: optional limit on the number of Fedoras, then “all Fedoras are gone”
+- **Settings page** (`/#/config`, like in [bashbrawl](https://github.com/jggoebel/bashbrawl)):
+  - _This device_: backend URL, API key, station name, scan method (automatic/USB/camera)
+  - _Raffle_ (stored in the backend, the same for all stations): winner rule, number of Fedoras,
+    timings, language of the visitor screens (English/German), idle texts, show results of other
+    stations, PIN/password
+  - Health check, scanner test, list of all scanned codes (also as QR codes), CSV export
+- **PIN/password for the settings**: once set, it is required every time the settings are opened
+  (with a backend on all stations; stored as a scrypt hash, 5 wrong attempts → 30 s lockout)
+- **Backend** without dependencies (`server/server.mjs`): stores scans and settings as JSON files
 
-## Schnellstart am Stand (ein Laptop)
+## Quick start at the booth (one laptop)
 
 ```bash
 npm ci
-npm run start:booth          # baut das Frontend und startet das Backend auf Port 3000
+npm run start:booth          # builds the frontend and starts the backend on port 3000
 ```
 
-Dann <http://localhost:3000> im Browser (Vollbild: F11) öffnen. Wird die App vom Backend
-ausgeliefert, verbindet sie sich beim ersten Start automatisch damit. Ab jetzt landet jeder Scan
-in `server/data/scans.json`, die Einstellungen in `server/data/config.json`.
+Then open <http://localhost:3000> in the browser (full screen: F11). When the app is served by the
+backend it connects to it automatically on first start. From now on every scan ends up in
+`server/data/scans.json`, the settings in `server/data/config.json`.
 
-Ohne Backend (`local`, z. B. beim Dev-Server) werden die Scans nur im Local Storage des Browsers
-gespeichert.
+Without a backend (`local`, e.g. with the dev server) scans are only stored in the browser's local
+storage.
 
-## Mehrere Stationen und Handys
+## Multiple stations and phones
 
-1. Backend auf einem Laptop im Stand-WLAN starten – **mit HTTPS**, denn Browser erlauben die
-   Kamera nur über HTTPS (Ausnahme: `localhost`):
+1. Start the backend on a laptop in the booth Wi-Fi – **with HTTPS**, because browsers only allow
+   the camera over HTTPS (exception: `localhost`):
 
    ```bash
-   # einmalig ein Zertifikat erzeugen (IP des Laptops eintragen)
+   # create a certificate once (put in the laptop's IP address)
    openssl req -x509 -newkey rsa:2048 -nodes -days 60 -keyout server/data/key.pem \
      -out server/data/cert.pem -subj "/CN=hat-raffle" \
      -addext "subjectAltName=IP:192.168.1.20,DNS:localhost"
@@ -81,80 +85,98 @@ gespeichert.
    TLS_CERT=server/data/cert.pem TLS_KEY=server/data/key.pem npm run server
    ```
 
-   Mit [mkcert](https://github.com/FiloSottile/mkcert) erzeugte Zertifikate vermeiden die
-   Browser-Warnung, wenn die mkcert-CA auf den Geräten installiert ist. Sonst die Warnung einmal
-   bestätigen („Details → Website besuchen“ bzw. „Erweitert → Weiter“).
+   Certificates made with [mkcert](https://github.com/FiloSottile/mkcert) avoid the browser warning
+   once the mkcert CA is installed on the devices. Otherwise confirm the warning once on each device
+   (“Show details → visit this website” or “Advanced → Proceed”).
 
-2. Auf jedem Gerät `https://192.168.1.20:3000` öffnen. Die App verbindet sich automatisch mit dem
-   Backend. In der Config einen eindeutigen **Stationsnamen** vergeben.
-3. Laptops/PCs nutzen den USB-Handscanner und zeigen die Idle-Animation. Handys und Tablets
-   öffnen direkt die Kamera. Die Scan-Methode lässt sich pro Gerät in der Config überschreiben.
-4. Gewinnt jemand an einer Station, erscheint das Ergebnis mit Konfetti auch auf allen großen
-   Bildschirmen (mit dem Namen der Station). Abschaltbar über _Ergebnisse aller Stationen anzeigen_.
-5. Einstellungen, die auf einer Station gespeichert werden, übernehmen alle anderen sofort.
+2. Open `https://192.168.1.20:3000` on every device. The app connects to the backend
+   automatically. Give each device a unique **station name** in the settings.
+3. Laptops/PCs use the USB hand scanner and show the idle animation. Phones and tablets open the
+   camera straight away. The scan method can be overridden per device in the settings.
+4. When someone wins at one station, the result with confetti also appears on all big screens
+   (with the station name). Can be turned off with _Show the results of all stations_.
+5. Settings saved on one station are picked up by all others immediately.
 
-Die Teilnehmernummern werden ausschließlich im Backend vergeben: Node verarbeitet die Anfragen
-nacheinander, Nummer und Speicherung passieren ohne Unterbrechung. So bekommt auch bei
-gleichzeitigen Scans an mehreren Stationen niemand dieselbe Nummer (siehe Test
-_many stations at once never get the same number_). Es darf daher nur **eine** Backend-Instanz
-laufen.
+The participant numbers are only handed out by the backend: Node handles the requests one after
+another, and assigning the number and storing the scan happen without interruption. So even with
+simultaneous scans at several stations nobody gets the same number (see the test _many stations at
+once never get the same number_). Therefore only **one** backend instance may run.
 
-## Entwicklung
+### Camera scanning
+
+- Android (Chrome) uses the browser's built-in barcode detector.
+- iOS has no built-in detector in the browser, so [ZXing](https://github.com/zxing-js/library) is
+  used. It decodes small, downscaled parts of the camera picture and cycles through different crops
+  and sizes from frame to frame. This finds badge codes much faster than decoding full frames.
+- The camera is opened in HD with continuous autofocus where the device supports it.
+- Hold the badge so the code is roughly inside the frame. A badge that stays in front of the camera
+  is not sent a second time; tapping the result goes straight back to the camera.
+
+### Vibration
+
+- **Android**: Chrome only allows vibration after the screen has been touched once. Until then the
+  scan screen shows “Tap once to enable vibration”.
+- **iPhone/iPad**: Safari has no vibration API. From iOS 18 on the app uses the haptic feedback of a
+  hidden switch control instead, so a win is felt as a series of taps. This requires
+  _Settings → Sounds & Haptics → System Haptics_ to be on; older iOS versions do not vibrate.
+
+## Development
 
 ```bash
-npm start                    # Angular Dev-Server auf http://localhost:4200
-npm run server               # Backend auf http://localhost:3000
-npm test                     # Frontend-Tests (Vitest)
-npm run test:server          # Backend-Tests (node:test)
+npm start                    # Angular dev server on http://localhost:4200
+npm run server               # backend on http://localhost:3000
+npm test                     # frontend tests (Vitest)
+npm run test:server          # backend tests (node:test)
 ```
 
-Zum Testen ohne Scanner: normales Tippen wird bewusst ignoriert. In der Config den Wert
-_Scanner: max. Pause zwischen Zeichen_ vorübergehend auf z. B. `1000` ms setzen, dann kann man
-einen Code im Kiosk eintippen und mit Enter abschicken.
+To test without a scanner: normal typing is ignored on purpose. Temporarily set _Scanner: max.
+pause between characters_ in the settings to e.g. `1000` ms, then you can type a code on the kiosk
+and submit it with Enter.
 
-## Gewinnregel
+## Winner rule
 
-| Regel                | Beschreibung                                                                                                                             |
-| -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| `counter` (Standard) | Die n-te Person gewinnt, wenn n eine Primzahl ist (2., 3., 5., 7., 11., …).                                                              |
-| `code`               | Alle Ziffern des gescannten Codes werden als Zahl gelesen und auf Primzahl geprüft.                                                      |
-| `random`             | Zufall: In jedem Block von 100 Scans (1–100, 101–200, …) werden genau _Fedoras pro 100 Scans_ Gewinner an zufälligen Positionen gezogen. |
+| Rule                | Description                                                                                                                    |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| `counter` (default) | The n-th person wins if n is a prime number (2nd, 3rd, 5th, 7th, 11th, …).                                                     |
+| `code`              | All digits of the scanned code are read as one number and checked for being prime.                                             |
+| `random`            | Random: in every block of 100 scans (1–100, 101–200, …) exactly _Fedoras per 100 scans_ winners are drawn at random positions. |
 
-Im Backend-Modus vergibt der Server die Teilnehmernummern, dadurch funktionieren auch
-mehrere Stationen mit einem gemeinsamen Zähler.
+In backend mode the server hands out the participant numbers, so several stations share one
+counter.
 
 ## Backend
 
-Konfiguration über Umgebungsvariablen:
+Configured with environment variables:
 
-| Variable              | Standard                         | Beschreibung                                                                                |
-| --------------------- | -------------------------------- | ------------------------------------------------------------------------------------------- |
-| `PORT`                | `3000`                           | Port                                                                                        |
-| `DATA_FILE`           | `server/data/scans.json`         | Datei mit allen Scans                                                                       |
-| `CONFIG_FILE`         | neben `DATA_FILE`: `config.json` | Geteilte Einstellungen und PIN-Hash                                                         |
-| `API_KEY`             | –                                | Wenn gesetzt, muss jede `/api`-Anfrage den Header `X-Api-Key` (Events: `?key=`) mitschicken |
-| `CORS_ORIGIN`         | `*`                              | Erlaubter Origin                                                                            |
-| `STATIC_DIR`          | `dist/hat-raffle/browser`        | Liefert das gebaute Frontend mit aus                                                        |
-| `TLS_CERT`, `TLS_KEY` | –                                | Pfade zu Zertifikat und Schlüssel (PEM) – schaltet HTTPS ein                                |
+| Variable              | Default                            | Description                                                                     |
+| --------------------- | ---------------------------------- | ------------------------------------------------------------------------------- |
+| `PORT`                | `3000`                             | Port                                                                            |
+| `DATA_FILE`           | `server/data/scans.json`           | File with all scans                                                             |
+| `CONFIG_FILE`         | next to `DATA_FILE`: `config.json` | Shared settings and PIN hash                                                    |
+| `API_KEY`             | –                                  | If set, every `/api` request must send the header `X-Api-Key` (events: `?key=`) |
+| `CORS_ORIGIN`         | `*`                                | Allowed origin                                                                  |
+| `STATIC_DIR`          | `dist/hat-raffle/browser`          | Serves the built frontend as well                                               |
+| `TLS_CERT`, `TLS_KEY` | –                                  | Paths to certificate and key (PEM) – turns on HTTPS                             |
+| `TRUST_PROXY`         | –                                  | `1` behind a reverse proxy: `X-Forwarded-For` is used for the PIN lockout       |
 
 ### API
 
-| Methode | Pfad                 | Beschreibung                                                                                                                                                                    |
-| ------- | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `GET`   | `/healthz`           | Healthcheck `{ status: "ok", app: "hat-raffle" }`                                                                                                                               |
-| `POST`  | `/api/scans`         | Body `{ code, station, clientId }` → `201 { status: "new", record, soldOut }` bzw. `200 { status: "duplicate", record }`. Die Gewinnregel kommt immer aus der geteilten Config. |
-| `GET`   | `/api/stats`         | `{ total, winners }`                                                                                                                                                            |
-| `GET`   | `/api/config`        | Geteilte Einstellungen inkl. `pinSet` (ohne PIN)                                                                                                                                |
-| `PUT`   | `/api/config` 🔒     | Body `{ config, newPin? }` (`newPin: null` entfernt die PIN)                                                                                                                    |
-| `POST`  | `/api/config/unlock` | Body `{ pin }` → `200` oder `403`, nach 5 Fehlversuchen `429`                                                                                                                   |
-| `GET`   | `/api/events`        | Server-Sent Events: `hello` (Config + Zähler), `scan` (neuer Scan ohne Code), `config`                                                                                          |
-| `GET`   | `/api/scans` 🔒      | Alle Scans `{ scans, total, winners }`                                                                                                                                          |
-| `GET`   | `/api/scans.csv` 🔒  | CSV-Export (PIN auch als `?pin=`)                                                                                                                                               |
+| Method | Path                 | Description                                                                                                                                                                    |
+| ------ | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `GET`  | `/healthz`           | Health check `{ status: "ok", app: "hat-raffle" }`                                                                                                                             |
+| `POST` | `/api/scans`         | Body `{ code, station, clientId }` → `201 { status: "new", record, soldOut }` or `200 { status: "duplicate", record }`. The winner rule always comes from the shared settings. |
+| `GET`  | `/api/stats`         | `{ total, winners }`                                                                                                                                                           |
+| `GET`  | `/api/config`        | Shared settings incl. `pinSet` (without the PIN)                                                                                                                               |
+| `PUT`  | `/api/config` 🔒     | Body `{ config, newPin? }` (`newPin: null` removes the PIN)                                                                                                                    |
+| `POST` | `/api/config/unlock` | Body `{ pin }` → `200` or `403`, after 5 wrong attempts `429`                                                                                                                  |
+| `GET`  | `/api/events`        | Server-Sent Events: `hello` (settings + counters), `scan` (new scan without the code), `config`                                                                                |
+| `GET`  | `/api/scans` 🔒      | All scans `{ scans, total, winners }`                                                                                                                                          |
+| `GET`  | `/api/scans.csv` 🔒  | CSV export (PIN also as `?pin=`)                                                                                                                                               |
 
-🔒 = benötigt den Header `X-Config-Pin`, sobald eine PIN gesetzt ist. Scannen und die Anzeige
-funktionieren ohne PIN.
+🔒 = needs the header `X-Config-Pin` once a PIN is set. Scanning and the kiosk screens work without
+the PIN.
 
-Ein Datensatz sieht so aus:
+A record looks like this:
 
 ```json
 {
@@ -168,52 +190,55 @@ Ein Datensatz sieht so aus:
 
 ### Docker
 
-Es gibt drei Images:
+There are three images:
 
-| Datei                 | Inhalt                                                                                    |
-| --------------------- | ----------------------------------------------------------------------------------------- |
-| `server/Dockerfile`   | nur das **Backend** (API, geteilte Config, Live-Events), Port 3000                        |
-| `Dockerfile.frontend` | nur das **Frontend** (nginx), leitet `/api` und `/healthz` an das Backend weiter, Port 80 |
-| `Dockerfile`          | alles in einem: das Backend liefert auch das Frontend aus, Port 3000                      |
+| File                  | Contents                                                                              |
+| --------------------- | ------------------------------------------------------------------------------------- |
+| `server/Dockerfile`   | only the **backend** (API, shared settings, live events), port 3000                   |
+| `Dockerfile.frontend` | only the **frontend** (nginx), forwards `/api` and `/healthz` to the backend, port 80 |
+| `Dockerfile`          | all in one: the backend also serves the frontend, port 3000                           |
 
-**Backend und Frontend getrennt (docker compose):**
+**Backend and frontend separately (docker compose):**
 
 ```bash
-docker compose up -d --build        # Frontend: http://<host>:8080, Backend: Port 3000
+docker compose up -d --build        # frontend: http://<host>:8080, backend: port 3000
 ```
 
-Alle Stationen öffnen `http://<host>:8080`. Das Frontend verbindet sich über den nginx-Proxy
-automatisch mit dem Backend. Scans und Config liegen im Volume `raffle-data`. Einen API-Key
-setzt man über eine `.env`-Datei neben der `docker-compose.yml` (`API_KEY=geheim`).
+All stations open `http://<host>:8080`. The frontend connects to the backend automatically through
+the nginx proxy. Scans and settings are kept in the volume `raffle-data`. An API key is set in a
+`.env` file next to `docker-compose.yml` (`API_KEY=secret`).
 
-**Nur das Backend:**
+**Backend only:**
 
 ```bash
 docker build -t hat-raffle-backend server
 docker run -d -p 3000:3000 -v raffle-data:/data hat-raffle-backend
 ```
 
-Das Frontend (egal wo es läuft) dann in der Config auf `http://<host>:3000` zeigen lassen.
+Then point the frontend (wherever it runs) to `http://<host>:3000` in the settings.
 
-**Alles in einem Container:**
+**All in one container:**
 
 ```bash
 docker build -t hat-raffle .
-docker run -p 3000:3000 -v $(pwd)/data:/data -e API_KEY=geheim hat-raffle
+docker run -p 3000:3000 -v $(pwd)/data:/data -e API_KEY=secret hat-raffle
 ```
 
-Für die Handy-Kamera wird HTTPS benötigt: entweder `TLS_CERT`/`TLS_KEY` am Backend setzen
-(Zertifikate per Volume einbinden) oder einen Reverse-Proxy mit TLS vor das Frontend stellen.
+The phone camera needs HTTPS: either set `TLS_CERT`/`TLS_KEY` on the backend (mount the
+certificates as a volume) or put a reverse proxy with TLS in front of the frontend.
 
-## Hinweise für die Messe
+## Tips for the trade show
 
-- Browser im Kiosk-Modus starten, z. B. `chromium --kiosk http://localhost:3000`.
-- Handys: Display-Sperre für die Messe verlängern und die Seite zum Home-Bildschirm hinzufügen.
-- Der Scanner muss als USB-Tastatur (HID) konfiguriert sein und mit **Enter** (oder Tab) abschließen.
-  Bei Tastaturlayout-Problemen (z/y, Sonderzeichen) das Layout des Scanners auf Deutsch stellen.
-- Ausweis-Codes können personenbezogene Daten enthalten – Datenschutzhinweis am Stand aushängen
-  und `scans.json` nach der Messe/Gewinnauswertung löschen. Die Live-Events an die Stationen
-  enthalten keine Codes, nur Nummer, Station und Ergebnis.
-- Die lokale PIN (ohne Backend) liegt nur im Browser und schützt vor versehentlichen Änderungen,
-  nicht vor jemandem mit Zugriff auf die Entwicklertools.
-- Die rote Fedora ist eine eigene Zeichnung, kein offizielles Red-Hat-Logo.
+- Start the browser in kiosk mode, e.g. `chromium --kiosk http://localhost:3000`.
+- Phones: extend the auto-lock time for the show and add the page to the home screen.
+- The scanner must be set up as a USB keyboard (HID) and end each code with **Enter** (or Tab). If
+  characters come out wrong (e.g. z/y swapped, special characters), set the scanner's keyboard
+  layout to match the computer's.
+- The visitor screens are English by default; German can be chosen under _Language of the visitor
+  screens_ in the settings.
+- Badge codes can contain personal data – put up a privacy notice at the booth and delete
+  `scans.json` after the show and the prize hand-out. The live events sent to the stations contain
+  no codes, only number, station and result.
+- The local PIN (without a backend) is kept in the browser only. It prevents accidental changes,
+  not someone with access to the developer tools.
+- The red Fedora is our own drawing, not an official Red Hat logo.

@@ -365,6 +365,17 @@
 }
 
 /* ---------- camera mode (phones) ---------- */
+.vibration-hint {
+  margin: -0.4rem 0 0.8rem;
+  padding: 0.35rem 1rem;
+  font: inherit;
+  font-size: 0.95rem;
+  color: $rh-black;
+  background: $rh-gray-10;
+  border: 1px dashed $rh-gray-40;
+  border-radius: 999px;
+}
+
 .camera-panel {
   display: flex;
   flex-direction: column;
