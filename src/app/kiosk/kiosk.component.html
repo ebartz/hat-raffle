@@ -9,7 +9,27 @@
       <app-hat class="brand-hat" [shadow]="false" />
       <span class="brand-name">Win a <strong>Fedora</strong></span>
     </div>
-    <a class="config-link" routerLink="/config" aria-label="Settings">⚙</a>
+    <div class="topbar-actions">
+      @if (canFullscreen) {
+        <button
+          #fsButton
+          type="button"
+          class="icon-button"
+          (click)="toggleFullscreen(fsButton)"
+          [attr.aria-label]="fullscreen() ? 'Exit fullscreen' : 'Fullscreen'"
+          [title]="fullscreen() ? 'Exit fullscreen' : 'Fullscreen (presentation mode)'"
+        >
+          <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">
+            @if (fullscreen()) {
+              <path d="M9 3v6H3M15 3v6h6M9 21v-6H3M15 21v-6h6" />
+            } @else {
+              <path d="M3 9V3h6M21 9V3h-6M3 15v6h6M21 15v6h-6" />
+            }
+          </svg>
+        </button>
+      }
+      <a class="icon-button" routerLink="/config" aria-label="Settings">⚙</a>
+    </div>
   </header>
 
   <main class="stage" (click)="tapResult()">

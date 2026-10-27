@@ -48,11 +48,32 @@
   width: 56px;
 }
 
-.config-link {
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+}
+
+.icon-button {
+  padding: 0;
   color: $rh-gray-60;
+  font: inherit;
   font-size: 1.6rem;
+  line-height: 1;
   text-decoration: none;
+  background: none;
+  border: 0;
+  cursor: pointer;
   opacity: 0.35;
+
+  svg {
+    display: block;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2.2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
 
   &:hover {
     opacity: 1;

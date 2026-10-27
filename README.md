@@ -64,7 +64,7 @@ npm ci
 npm run start:booth          # builds the frontend and starts the backend on port 3000
 ```
 
-Then open <http://localhost:3000> in the browser (full screen: F11). When the app is served by the
+Then open <http://localhost:3000> in the browser (full screen: the button next to the ⚙ in the top bar, or F11). When the app is served by the
 backend it connects to it automatically on first start. From now on every scan ends up in
 `server/data/scans.json`, the settings in `server/data/config.json`.
 

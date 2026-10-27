@@ -23,6 +23,16 @@ import { HatComponent } from '../shared/hat.component';
 import { AttractComponent } from './attract.component';
 import { CameraScannerComponent } from './camera-scanner.component';
 
+type WebkitDocument = Document & {
+  webkitFullscreenEnabled?: boolean;
+  webkitFullscreenElement?: Element | null;
+  webkitExitFullscreen?: () => Promise<void> | void;
+};
+type WebkitElement = HTMLElement & { webkitRequestFullscreen?: () => Promise<void> | void };
+
+const isFullscreen = () =>
+  !!(document.fullscreenElement ?? (document as WebkitDocument).webkitFullscreenElement);
+
 export type KioskState =
   'ready' | 'processing' | 'win' | 'lose' | 'duplicate' | 'soldout' | 'error';
 
@@ -67,7 +77,13 @@ export class KioskComponent implements OnInit, OnDestroy {
     return this.i18n.t(won ? 'winSubtitle' : 'loseSubtitle', { n });
   });
 
+  /** Hidden where the browser has no fullscreen API (e.g. Safari on the iPhone). */
+  protected readonly canFullscreen =
+    !!document.fullscreenEnabled || !!(document as WebkitDocument).webkitFullscreenEnabled;
+  protected readonly fullscreen = signal(isFullscreen());
+
   private readonly subs = new Subscription();
+  private readonly onFullscreenChange = () => this.fullscreen.set(isFullscreen());
   private resultTimer?: number;
   private idleTimer?: number;
   private statsInterval?: number;
@@ -93,10 +109,14 @@ export class KioskComponent implements OnInit, OnDestroy {
       30_000,
     );
     this.armIdleTimer();
+    document.addEventListener('fullscreenchange', this.onFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', this.onFullscreenChange);
   }
 
   ngOnDestroy(): void {
     this.subs.unsubscribe();
+    document.removeEventListener('fullscreenchange', this.onFullscreenChange);
+    document.removeEventListener('webkitfullscreenchange', this.onFullscreenChange);
     clearTimeout(this.resultTimer);
     clearTimeout(this.idleTimer);
     clearInterval(this.statsInterval);
@@ -109,6 +129,24 @@ export class KioskComponent implements OnInit, OnDestroy {
     if (this.idle()) {
       this.idle.set(false);
       this.armIdleTimer();
+    }
+  }
+
+  /** Presentation mode: fullscreen hides the browser's address bar and tabs. */
+  protected async toggleFullscreen(button: HTMLElement): Promise<void> {
+    // Keep the focus off the button, so scanner input cannot press it.
+    button.blur();
+    const doc = document as WebkitDocument;
+    const root = document.documentElement as WebkitElement;
+    try {
+      if (isFullscreen()) {
+        await (doc.exitFullscreen?.() ?? doc.webkitExitFullscreen?.());
+      } else {
+        await (root.requestFullscreen?.({ navigationUI: 'hide' }) ??
+          root.webkitRequestFullscreen?.());
+      }
+    } catch {
+      // Refused by the browser (e.g. not triggered by a user gesture) – nothing to do.
     }
   }
 
