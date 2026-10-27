@@ -77,7 +77,7 @@ export function createHandler(
    * failed attempt, so a station that has not been given the password yet cannot lock out the
    * other stations behind the same address.
    */
-  const requirePin = (req, res, pin = req.headers['x-config-pin']) => {
+  const requirePin = (req, res, pin) => {
     const forwarded = trustProxy ? String(req.headers['x-forwarded-for'] ?? '').split(',')[0] : '';
     const ip = forwarded.trim() || req.socket.remoteAddress || '';
     const fails = pinFails.get(ip);
@@ -130,7 +130,7 @@ export function createHandler(
         if (!requirePin(req, res, body.pin)) return;
         return send(res, 200, { ok: true });
       }
-      const pin = req.headers['x-config-pin'] ?? url.searchParams.get('pin');
+      const pin = headerPin(req) ?? url.searchParams.get('pin');
       if (!requirePin(req, res, pin)) return;
 
       switch (route) {
@@ -220,6 +220,20 @@ export function createApp(store, config, options = {}) {
     return close(cb);
   };
   return server;
+}
+
+/**
+ * Header values may only contain Latin-1, so the app sends the PIN URI-encoded – otherwise a PIN
+ * like "Fedora€" could never be sent. Undecodable values are taken as they are.
+ */
+function headerPin(req) {
+  const raw = req.headers['x-config-pin'];
+  if (typeof raw !== 'string') return undefined;
+  try {
+    return decodeURIComponent(raw);
+  } catch {
+    return raw;
+  }
 }
 
 function send(res, status, body) {

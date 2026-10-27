@@ -51,7 +51,8 @@ export class BackendService {
     const key = this.settings.value.apiKey;
     if (key) headers = headers.set('X-Api-Key', key);
     const devicePin = pin || this.settings.value.backendPin;
-    if (devicePin) headers = headers.set('X-Config-Pin', devicePin);
+    // Headers only allow Latin-1: encode, so any password can be sent (the backend decodes it).
+    if (devicePin) headers = headers.set('X-Config-Pin', encodeURIComponent(devicePin));
     return headers;
   }
 }

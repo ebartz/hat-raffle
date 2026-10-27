@@ -199,6 +199,22 @@ test('a PIN protects the whole backend', async () => {
   assert.equal((await api('/api/scans')).status, 200);
 });
 
+test('PINs with any characters work, URI-encoded in the header', async () => {
+  const pin = 'Fedora€ 🎩%';
+  await api('/api/config', {
+    method: 'PUT',
+    headers: { 'X-Config-Pin': '1234' },
+    body: { config: {}, newPin: pin },
+  });
+  assert.equal((await api('/api/config/unlock', { method: 'POST', body: { pin } })).status, 200);
+  const encoded = { 'X-Config-Pin': encodeURIComponent(pin) };
+  assert.equal((await api('/api/stats', { headers: encoded })).status, 200);
+  const events = await fetch(`${base}/api/events?key=secret&pin=${encodeURIComponent(pin)}`);
+  assert.equal(events.status, 200);
+  await events.body.cancel();
+  await api('/api/config', { method: 'PUT', headers: encoded, body: { config: {}, newPin: null } });
+});
+
 test('too many wrong PINs lock the client out for a while', async () => {
   await api('/api/config', { method: 'PUT', body: { config: {}, newPin: 'abcd' } });
   const unlock = (pin) => api('/api/config/unlock', { method: 'POST', body: { pin } });
