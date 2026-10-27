@@ -300,6 +300,14 @@
           >
             CSV export
           </button>
+          <button
+            type="button"
+            class="btn btn-secondary"
+            (click)="exportPdf()"
+            [disabled]="!scans().length || pdfBusy()"
+          >
+            {{ pdfBusy() ? 'Creating PDF …' : 'PDF export' }}
+          </button>
           @if (isLocal) {
             <button type="button" class="btn btn-danger" (click)="clearLocal()">
               Delete local data

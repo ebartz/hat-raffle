@@ -51,7 +51,8 @@ share one counter, the settings and the results.
   - _Raffle_ (stored in the backend, the same for all stations): winner rule, number of Fedoras,
     timings, language of the visitor screens (English/German), idle texts, show results of other
     stations, PIN/password
-  - Health check, scanner test, list of all scanned codes (also as QR codes), CSV export
+  - Health check, scanner test, list of all scanned codes (also as QR codes), CSV export and
+    PDF export (one row per scan with its QR code, winners highlighted)
 - **PIN/password for the settings**: once set, it is required every time the settings are opened
   (with a backend on all stations; stored as a scrypt hash, 5 wrong attempts → 30 s lockout)
 - **Backend** without dependencies (`server/server.mjs`): stores scans and settings as JSON files

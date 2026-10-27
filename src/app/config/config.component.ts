@@ -46,6 +46,7 @@ export class ConfigComponent implements OnInit, OnDestroy {
   protected readonly scans = signal<ScanRecord[]>([]);
   protected readonly scansError = signal('');
   protected readonly unlockError = signal('');
+  protected readonly pdfBusy = signal(false);
   protected testCode = '';
   protected unlockPin = '';
   protected newPin = '';
@@ -221,6 +222,21 @@ export class ConfigComponent implements OnInit, OnDestroy {
     a.download = `hat-raffle-${new Date().toISOString().slice(0, 10)}.csv`;
     a.click();
     URL.revokeObjectURL(a.href);
+  }
+
+  protected async exportPdf(): Promise<void> {
+    this.pdfBusy.set(true);
+    try {
+      // Loaded on demand so the PDF library does not end up in the kiosk bundle.
+      const { buildScansPdf } = await import('./scans-pdf');
+      const source = this.isLocal ? 'Browser (local storage)' : this.form.backend;
+      const doc = await buildScansPdf(this.scans().slice().reverse(), source);
+      doc.save(`hat-raffle-${new Date().toISOString().slice(0, 10)}.pdf`);
+    } catch {
+      this.showMessage('Could not create the PDF.', false);
+    } finally {
+      this.pdfBusy.set(false);
+    }
   }
 
   protected clearLocal(): void {
