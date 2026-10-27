@@ -87,7 +87,8 @@
   align-items: center;
   justify-content: center;
   padding: clamp(1rem, 3.5vh, 2rem) clamp(1.5rem, 4vw, 4rem);
-  overflow: hidden;
+  // Visible, so the winner hat is not cut off on its way in (the page itself never scrolls).
+  overflow: visible;
 }
 
 .panel {
@@ -213,6 +214,8 @@
 
 .win-hat-wrap {
   position: relative;
+  // Above the top bar and the stats while it flies in.
+  z-index: 2;
   width: min(42vw, 40vh, 520px);
   margin-bottom: clamp(0.4rem, 1.5vh, 1rem);
 }
@@ -357,8 +360,9 @@
 }
 
 @keyframes hat-fly-in {
+  // From the upper left, so it never passes behind the stats at the bottom.
   0% {
-    transform: translate(-70vw, 60vh) rotate(-540deg) scale(0.2);
+    transform: translate(-75vw, -25vh) rotate(-540deg) scale(0.2);
   }
   70% {
     transform: translate(0, -40px) rotate(8deg) scale(1.08);
