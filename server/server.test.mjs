@@ -155,14 +155,21 @@ test('config changes and new scans are pushed to all stations', async () => {
   assert.ok(scan.stats.total > 0);
 });
 
-test('a PIN protects the config and the scan list', async () => {
+test('a PIN protects the whole backend', async () => {
   await api('/api/config', { method: 'PUT', body: { config: {}, newPin: '1234' } });
+  const PIN = { 'X-Config-Pin': '1234' };
 
-  const publicConfig = await (await api('/api/config')).json();
-  assert.equal(publicConfig.pinSet, true);
-  assert.equal(JSON.stringify(publicConfig).includes('hash'), false);
+  assert.deepEqual(await (await api('/api/access')).json(), { pinSet: true });
+  const config = await (await api('/api/config', { headers: PIN })).json();
+  assert.equal(config.pinSet, true);
+  assert.equal(JSON.stringify(config).includes('hash'), false);
   assert.equal(readFileSync(configFile, 'utf8').includes('1234'), false, 'PIN is stored hashed');
 
+  // Without the PIN a station can neither scan nor read anything.
+  assert.equal((await post('no-pin')).status, 403);
+  assert.equal((await api('/api/stats')).status, 403);
+  assert.equal((await api('/api/config')).status, 403);
+  assert.equal((await fetch(`${base}/api/events?key=secret`)).status, 403);
   assert.equal((await api('/api/scans')).status, 403);
   assert.equal((await api('/api/config', { method: 'PUT', body: { config: {} } })).status, 403);
   assert.equal(
@@ -173,10 +180,14 @@ test('a PIN protects the config and the scan list', async () => {
     (await api('/api/config/unlock', { method: 'POST', body: { pin: '1234' } })).status,
     200,
   );
-  assert.equal((await api('/api/scans', { headers: { 'X-Config-Pin': '1234' } })).status, 200);
-
-  // Scanning keeps working without the PIN.
-  assert.equal((await post('after-pin')).status, 201);
+  assert.equal((await api('/api/scans', { headers: PIN })).status, 200);
+  assert.equal(
+    (await api('/api/scans', { method: 'POST', body: { code: 'with-pin' }, headers: PIN })).status,
+    201,
+  );
+  const events = await fetch(`${base}/api/events?key=secret&pin=1234`);
+  assert.equal(events.status, 200);
+  await events.body.cancel();
 
   // Removing the PIN.
   const res = await api('/api/config', {
@@ -191,6 +202,9 @@ test('a PIN protects the config and the scan list', async () => {
 test('too many wrong PINs lock the client out for a while', async () => {
   await api('/api/config', { method: 'PUT', body: { config: {}, newPin: 'abcd' } });
   const unlock = (pin) => api('/api/config/unlock', { method: 'POST', body: { pin } });
+  // Requests without a PIN (stations that were not given the password yet) do not count.
+  for (let i = 0; i < 10; i++) assert.equal((await api('/api/stats')).status, 403);
+  assert.equal((await unlock('abcd')).status, 200);
   for (let i = 0; i < 5; i++) assert.equal((await unlock('nope')).status, 403);
   assert.equal((await unlock('abcd')).status, 429);
 });

@@ -131,6 +131,8 @@ export class ConfigComponent implements OnInit, OnDestroy {
     if (connectionChanged || this.access() === 'offline') {
       this.settingsService.save({
         ...current,
+        // A password belongs to one backend: ask again instead of sending it to another one.
+        backendPin: connectionChanged ? '' : current.backendPin,
         backend: this.form.backend,
         apiKey: this.form.apiKey,
         station: this.form.station,

@@ -1,4 +1,5 @@
 import { Injectable, inject, signal } from '@angular/core';
+import { AccessService } from './access.service';
 import { BackendService } from './backend.service';
 import { SharedConfig } from './realtime.service';
 import { Settings, SettingsService, pickShared } from './settings.service';
@@ -13,6 +14,7 @@ const LOCAL_PIN_KEY = 'hat_raffle_pin';
 export class ConfigLockService {
   private readonly backend = inject(BackendService);
   private readonly settings = inject(SettingsService);
+  private readonly access = inject(AccessService);
 
   /** The PIN entered for the current visit of the config page. */
   readonly pin = signal<string | null>(null);
@@ -20,8 +22,8 @@ export class ConfigLockService {
   /** Throws when the backend cannot be reached. */
   async isPinSet(): Promise<boolean> {
     if (this.settings.useLocal) return !!localStorage.getItem(LOCAL_PIN_KEY);
-    const config = await this.backend.get<SharedConfig>('/api/config');
-    return config.pinSet;
+    const { pinSet } = await this.backend.get<{ pinSet: boolean }>('/api/access');
+    return pinSet;
   }
 
   /** Returns false for a wrong PIN; throws on network errors or when locked out. */
@@ -31,14 +33,12 @@ export class ConfigLockService {
       if (ok) this.pin.set(pin);
       return ok;
     }
-    try {
-      await this.backend.post('/api/config/unlock', { pin });
-      this.pin.set(pin);
-      return true;
-    } catch (err) {
-      if ((err as { status?: number }).status === 403) return false;
-      throw err;
-    }
+    // The PIN is also the password of the backend: this device may use it from now on.
+    const result = await this.access.unlock(pin);
+    if (result === 'ok') this.pin.set(pin);
+    if (result === 'locked') throw { status: 429 };
+    if (result === 'offline') throw { status: 0 };
+    return result === 'ok';
   }
 
   lock(): void {
@@ -49,7 +49,9 @@ export class ConfigLockService {
    * Saves the settings. Device settings stay on this device, the raffle settings go to the
    * backend (and from there to every station). `newPin`: string = set, null = remove.
    */
-  async save(settings: Settings, newPin?: string | null): Promise<void> {
+  async save(form: Settings, newPin?: string | null): Promise<void> {
+    // The form may be older than the stored password of this device – never overwrite it here.
+    const settings = { ...form, backendPin: this.settings.value.backendPin };
     if (this.settings.useLocal) {
       this.settings.save(settings);
       if (newPin === null) localStorage.removeItem(LOCAL_PIN_KEY);
@@ -59,6 +61,7 @@ export class ConfigLockService {
       if (newPin !== undefined) body['newPin'] = newPin;
       const config = await this.backend.put<SharedConfig>('/api/config', body, this.pin());
       this.settings.save({ ...settings, ...pickShared(config) });
+      if (newPin !== undefined) this.access.remember(newPin ?? '');
     }
     if (newPin !== undefined) this.pin.set(newPin);
   }

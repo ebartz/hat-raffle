@@ -10,6 +10,7 @@ import {
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Subscription } from 'rxjs';
+import { AccessService } from '../core/access.service';
 import { isMobileDevice } from '../core/device';
 import { HapticsService } from '../core/haptics.service';
 import { I18nService } from '../core/i18n.service';
@@ -20,6 +21,7 @@ import { ScannerService } from '../core/scanner.service';
 import { SettingsService } from '../core/settings.service';
 import { CelebrationService } from '../shared/celebration.service';
 import { HatComponent } from '../shared/hat.component';
+import { AccessGateComponent } from './access-gate.component';
 import { AttractComponent } from './attract.component';
 import { CameraScannerComponent } from './camera-scanner.component';
 
@@ -38,7 +40,13 @@ export type KioskState =
 
 @Component({
   selector: 'app-kiosk',
-  imports: [HatComponent, AttractComponent, CameraScannerComponent, RouterLink],
+  imports: [
+    HatComponent,
+    AttractComponent,
+    CameraScannerComponent,
+    RouterLink,
+    AccessGateComponent,
+  ],
   templateUrl: './kiosk.component.html',
   styleUrl: './kiosk.component.scss',
 })
@@ -51,6 +59,9 @@ export class KioskComponent implements OnInit, OnDestroy {
   private readonly realtime = inject(RealtimeService);
   private readonly haptics = inject(HapticsService);
   private readonly isMobile = isMobileDevice();
+  /** The backend is protected and this device has no password yet: no scans until it has. */
+  private readonly access = inject(AccessService);
+  protected readonly locked = computed(() => this.access.state() === 'password');
 
   protected readonly settings = this.settingsService.settings;
   protected readonly state = signal<KioskState>('ready');
@@ -151,7 +162,7 @@ export class KioskComponent implements OnInit, OnDestroy {
   }
 
   protected async onScan(code: string): Promise<void> {
-    if (this.state() === 'processing') return;
+    if (this.state() === 'processing' || this.locked()) return;
     clearTimeout(this.resultTimer);
     clearTimeout(this.idleTimer);
     this.celebration.stop();

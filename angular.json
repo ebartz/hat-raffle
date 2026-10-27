@@ -39,7 +39,14 @@
               "node_modules/@fontsource/red-hat-text/700.css",
               "src/styles.scss"
             ],
-            "allowedCommonJsDependencies": ["qrcode", "html2canvas", "canvg", "core-js", "raf", "rgbcolor"]
+            "allowedCommonJsDependencies": [
+              "qrcode",
+              "html2canvas",
+              "canvg",
+              "core-js",
+              "raf",
+              "rgbcolor"
+            ]
           },
           "configurations": {
             "production": {

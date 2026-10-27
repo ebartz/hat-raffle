@@ -39,7 +39,10 @@
         @if (vibrationLocked()) {
           <button type="button" class="vibration-hint">{{ i18n.t('enableVibration') }}</button>
         }
-        <app-camera-scanner [active]="state() === 'ready'" (scanned)="onScan($event)" />
+        <app-camera-scanner
+          [active]="state() === 'ready' && !locked()"
+          (scanned)="onScan($event)"
+        />
       </section>
     }
     @if (remoteStation() && state() !== 'ready') {
@@ -143,7 +146,9 @@
     }
   </footer>
 
-  @if (idle()) {
+  @if (locked()) {
+    <app-access-gate />
+  } @else if (idle()) {
     <app-attract [winners]="store.stats().winners" [hatsLeft]="hatsLeft()" />
   }
 </div>

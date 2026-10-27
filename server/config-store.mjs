@@ -1,5 +1,5 @@
 // Shared raffle configuration: every station connected to this backend uses the same values.
-import { randomBytes, scryptSync, timingSafeEqual } from 'node:crypto';
+import { createHash, randomBytes, scryptSync, timingSafeEqual } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync } from 'node:fs';
 import { rename, writeFile } from 'node:fs/promises';
 import { dirname } from 'node:path';
@@ -49,6 +49,9 @@ export class ConfigStore {
     const stored = existsSync(file) ? JSON.parse(readFileSync(file, 'utf8')) : {};
     this.value = sanitizeConfig(stored.config);
     this.pin = stored.pin ?? null; // { salt, hash }
+    // Every station request carries the PIN: remember the last correct one instead of running
+    // scrypt for each scan.
+    this.verified = null;
     this.writeChain = Promise.resolve();
     mkdirSync(dirname(file), { recursive: true });
   }
@@ -65,12 +68,17 @@ export class ConfigStore {
   checkPin(pin) {
     if (!this.pin) return true;
     if (typeof pin !== 'string' || !pin) return false;
+    const digest = createHash('sha256').update(pin).digest();
+    if (this.verified && timingSafeEqual(digest, this.verified)) return true;
     const hash = scryptSync(pin, Buffer.from(this.pin.salt, 'hex'), 32);
-    return timingSafeEqual(hash, Buffer.from(this.pin.hash, 'hex'));
+    const ok = timingSafeEqual(hash, Buffer.from(this.pin.hash, 'hex'));
+    if (ok) this.verified = digest;
+    return ok;
   }
 
   async update(input, { newPin } = {}) {
     this.value = sanitizeConfig(input, this.value);
+    this.verified = null;
     if (newPin === null || newPin === '') {
       this.pin = null;
     } else if (typeof newPin === 'string') {
