@@ -34,6 +34,10 @@ export class ConfigComponent implements OnInit, OnDestroy {
   private readonly i18n = inject(I18nService);
   protected readonly realtime = inject(RealtimeService);
   protected readonly isMobile = isMobileDevice();
+  /** Helps to tune the layout for a screen (e.g. Samsung DeX): CSS pixels and pixel ratio. */
+  protected readonly viewport =
+    `${window.innerWidth} × ${window.innerHeight} px, ` +
+    `screen ${screen.width} × ${screen.height}, pixel ratio ${window.devicePixelRatio}`;
 
   protected form: Settings = { ...this.settingsService.value };
   protected headlinesText = this.form.idleHeadlines.join('\n');

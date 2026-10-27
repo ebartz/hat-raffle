@@ -1,5 +1,7 @@
 import {
+  AfterViewInit,
   Component,
+  ElementRef,
   OnDestroy,
   OnInit,
   computed,
@@ -7,6 +9,7 @@ import {
   inject,
   signal,
   untracked,
+  viewChild,
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Subscription } from 'rxjs';
@@ -50,7 +53,7 @@ export type KioskState =
   templateUrl: './kiosk.component.html',
   styleUrl: './kiosk.component.scss',
 })
-export class KioskComponent implements OnInit, OnDestroy {
+export class KioskComponent implements OnInit, AfterViewInit, OnDestroy {
   protected readonly i18n = inject(I18nService);
   protected readonly store = inject(ScanStoreService);
   private readonly scanner = inject(ScannerService);
@@ -93,6 +96,10 @@ export class KioskComponent implements OnInit, OnDestroy {
     !!document.fullscreenEnabled || !!(document as WebkitDocument).webkitFullscreenEnabled;
   protected readonly fullscreen = signal(isFullscreen());
 
+  private readonly stageRef = viewChild.required<ElementRef<HTMLElement>>('stage');
+  private readonly fitRef = viewChild.required<ElementRef<HTMLElement>>('fit');
+  private fitObserver?: ResizeObserver;
+
   private readonly subs = new Subscription();
   private readonly onFullscreenChange = () => this.fullscreen.set(isFullscreen());
   private resultTimer?: number;
@@ -124,7 +131,16 @@ export class KioskComponent implements OnInit, OnDestroy {
     document.addEventListener('webkitfullscreenchange', this.onFullscreenChange);
   }
 
+  ngAfterViewInit(): void {
+    // Whatever the screen (Samsung DeX, small laptops, odd browser zoom): shrink the content of
+    // the stage until it fits, instead of cutting off hats and texts.
+    this.fitObserver = new ResizeObserver(() => this.fitStage());
+    this.fitObserver.observe(this.stageRef().nativeElement);
+    this.fitObserver.observe(this.fitRef().nativeElement);
+  }
+
   ngOnDestroy(): void {
+    this.fitObserver?.disconnect();
     this.subs.unsubscribe();
     document.removeEventListener('fullscreenchange', this.onFullscreenChange);
     document.removeEventListener('webkitfullscreenchange', this.onFullscreenChange);
@@ -141,6 +157,24 @@ export class KioskComponent implements OnInit, OnDestroy {
       this.idle.set(false);
       this.armIdleTimer();
     }
+  }
+
+  private fitStage(): void {
+    const stage = this.stageRef().nativeElement;
+    const fit = this.fitRef().nativeElement;
+    // Phones scroll instead.
+    if (this.cameraMode()) {
+      fit.style.zoom = '';
+      return;
+    }
+    const style = getComputedStyle(stage);
+    const available =
+      stage.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom);
+    fit.style.zoom = '1';
+    const natural = fit.offsetHeight;
+    const zoom = natural > available && available > 0 ? Math.max(0.4, available / natural) : 1;
+    // Setting the same value again does not resize anything, so the observer settles at once.
+    fit.style.zoom = zoom < 1 ? zoom.toFixed(3) : '';
   }
 
   /** Presentation mode: fullscreen hides the browser's address bar and tabs. */
