@@ -25,7 +25,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 0 2.5rem;
-  height: 72px;
+  height: clamp(52px, 9vh, 72px);
   background: $rh-black;
   color: $rh-white;
   border-bottom: 4px solid $rh-red;
@@ -36,7 +36,7 @@
   align-items: center;
   gap: 0.9rem;
   font-family: $font-display;
-  font-size: 1.5rem;
+  font-size: clamp(1.15rem, 2.6vh, 1.5rem);
   letter-spacing: 0.01em;
 
   strong {
@@ -45,7 +45,7 @@
 }
 
 .brand-hat {
-  width: 56px;
+  width: clamp(40px, 7vh, 56px);
 }
 
 .topbar-actions {
@@ -86,7 +86,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 2rem 4rem;
+  padding: clamp(1rem, 3.5vh, 2rem) clamp(1.5rem, 4vw, 4rem);
   overflow: hidden;
 }
 
@@ -98,21 +98,21 @@
   h1 {
     font-family: $font-display;
     font-weight: 700;
-    font-size: clamp(2.8rem, 6vw, 5.5rem);
+    font-size: clamp(2rem, min(6vw, 9.5vh), 5.5rem);
     line-height: 1.05;
-    margin: 0 0 1.2rem;
+    margin: 0 0 clamp(0.6rem, 2vh, 1.2rem);
   }
 
   h2 {
     font-family: $font-display;
     font-weight: 500;
-    font-size: 2.2rem;
+    font-size: clamp(1.5rem, 4vh, 2.2rem);
   }
 
   .lead {
-    font-size: clamp(1.3rem, 2.2vw, 2rem);
+    font-size: clamp(1.05rem, min(2.2vw, 3.4vh), 2rem);
     line-height: 1.4;
-    margin: 0 auto 1.2rem;
+    margin: 0 auto clamp(0.6rem, 2vh, 1.2rem);
     max-width: 60ch;
   }
 
@@ -120,7 +120,7 @@
     display: flex;
     align-items: center;
     gap: 1rem;
-    font-size: 1.3rem;
+    font-size: clamp(1rem, 2.4vh, 1.3rem);
     color: $rh-gray-60;
   }
 }
@@ -144,7 +144,7 @@
 
   .eyebrow {
     display: inline-block;
-    margin: 0 0 1.2rem;
+    margin: 0 0 clamp(0.6rem, 2vh, 1.2rem);
     padding: 0.35rem 0.9rem;
     font-family: $font-display;
     font-weight: 500;
@@ -166,7 +166,7 @@
 }
 
 .float-hat {
-  width: min(38vw, 560px);
+  width: min(38vw, 58vh, 560px);
   animation: float 4s ease-in-out infinite;
 }
 
@@ -192,8 +192,8 @@
 }
 
 .spinner {
-  width: 96px;
-  height: 96px;
+  width: clamp(64px, 14vh, 96px);
+  height: clamp(64px, 14vh, 96px);
   border: 10px solid $rh-gray-20;
   border-top-color: $rh-red;
   border-radius: 50%;
@@ -213,8 +213,8 @@
 
 .win-hat-wrap {
   position: relative;
-  width: min(42vw, 520px);
-  margin-bottom: 1rem;
+  width: min(42vw, 40vh, 520px);
+  margin-bottom: clamp(0.4rem, 1.5vh, 1rem);
 }
 
 .glow {
@@ -234,9 +234,9 @@
 
 .number-badge {
   margin-top: 0.5rem;
-  padding: 0.5rem 1.6rem;
+  padding: 0.4rem 1.6rem;
   font-family: $font-display;
-  font-size: 2rem;
+  font-size: clamp(1.4rem, 4vh, 2rem);
   font-weight: 700;
   color: $rh-white;
   background: $rh-red;
@@ -247,20 +247,20 @@
 .number-circle {
   display: grid;
   place-items: center;
-  min-width: 180px;
-  height: 180px;
+  min-width: clamp(110px, 25vh, 180px);
+  height: clamp(110px, 25vh, 180px);
   padding: 0 1.5rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: clamp(0.8rem, 2.5vh, 1.5rem);
   font-family: $font-display;
-  font-size: 4.5rem;
+  font-size: clamp(2.8rem, 6.5vh, 4.5rem);
   font-weight: 700;
   color: $rh-black;
-  border: 8px solid $rh-black;
+  border: clamp(5px, 1.1vh, 8px) solid $rh-black;
   border-radius: 999px;
 }
 
 .sad-hat {
-  width: 260px;
+  width: clamp(160px, 36vh, 260px);
   margin-bottom: 1rem;
   filter: grayscale(0.6);
   transform: rotate(-12deg);
@@ -271,11 +271,11 @@
   .alert-icon {
     display: grid;
     place-items: center;
-    width: 150px;
-    height: 150px;
-    margin-bottom: 1.5rem;
+    width: clamp(96px, 21vh, 150px);
+    height: clamp(96px, 21vh, 150px);
+    margin-bottom: clamp(0.8rem, 2.5vh, 1.5rem);
     font-family: $font-display;
-    font-size: 6rem;
+    font-size: clamp(4rem, 13vh, 6rem);
     font-weight: 700;
     color: $rh-white;
     background: $rh-red;
@@ -293,7 +293,7 @@
   display: flex;
   justify-content: center;
   gap: 4rem;
-  padding: 1rem;
+  padding: clamp(0.5rem, 1.8vh, 1rem);
   background: $rh-gray-10;
   border-top: 1px solid $rh-gray-20;
 
@@ -310,13 +310,13 @@
 
   .value {
     font-family: $font-display;
-    font-size: 2rem;
+    font-size: clamp(1.4rem, 3.6vh, 2rem);
     font-weight: 700;
     color: $rh-red;
   }
 
   .label {
-    font-size: 1.1rem;
+    font-size: clamp(0.95rem, 2vh, 1.1rem);
     color: $rh-gray-60;
   }
 }
