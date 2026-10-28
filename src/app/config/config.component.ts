@@ -1,5 +1,13 @@
 import { DatePipe } from '@angular/common';
-import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
+import {
+  Component,
+  HostListener,
+  OnDestroy,
+  OnInit,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { Subscription } from 'rxjs';
@@ -44,6 +52,13 @@ export class ConfigComponent implements OnInit, OnDestroy {
   protected readonly access = signal<Access>('checking');
   protected readonly pinSet = signal(false);
   protected readonly selected = signal<ScanRecord | null>(null);
+  /** Position of the enlarged scan in the list (newest first). */
+  private readonly selectedIndex = computed(() => {
+    const scan = this.selected();
+    return scan ? this.scans().findIndex((s) => s.number === scan.number) : -1;
+  });
+  protected readonly previousScan = computed(() => this.neighbour(-1));
+  protected readonly nextScan = computed(() => this.neighbour(1));
   protected readonly message = signal<{ text: string; ok: boolean } | null>(null);
   protected readonly health = signal<Health>('unknown');
   protected readonly lastScan = signal('');
@@ -243,6 +258,31 @@ export class ConfigComponent implements OnInit, OnDestroy {
     } finally {
       this.pdfBusy.set(false);
     }
+  }
+
+  /** Arrow keys browse through the enlarged QR codes, Escape closes them. */
+  @HostListener('document:keydown', ['$event'])
+  protected onKeydown(event: KeyboardEvent): void {
+    if (!this.selected()) return;
+    const target =
+      event.key === 'ArrowLeft'
+        ? this.previousScan()
+        : event.key === 'ArrowRight'
+          ? this.nextScan()
+          : undefined;
+    if (target) {
+      event.preventDefault();
+      this.selected.set(target);
+    } else if (event.key === 'Escape') {
+      this.selected.set(null);
+    }
+  }
+
+  /** `-1`: the participant before the enlarged one, `1`: the one after it. */
+  private neighbour(step: -1 | 1): ScanRecord | null {
+    const index = this.selectedIndex();
+    // The list is sorted newest first, so earlier participants come later in it.
+    return index < 0 ? null : (this.scans()[index - step] ?? null);
   }
 
   protected clearLocal(): void {

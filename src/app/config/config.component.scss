@@ -287,6 +287,33 @@ textarea {
   }
 }
 
+.modal-nav {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.nav-btn {
+  min-width: 3rem;
+  padding: 0.4rem 0.8rem;
+  font-size: 2rem;
+  line-height: 1;
+}
+
+@media (max-width: 520px) {
+  .modal {
+    padding: 1.2rem;
+  }
+
+  .modal-nav {
+    gap: 0.4rem;
+
+    app-qr-code {
+      max-width: 60vw;
+    }
+  }
+}
+
 .modal-code {
   max-width: 100%;
   font-size: 1.1rem;

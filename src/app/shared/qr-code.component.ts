@@ -16,6 +16,8 @@ import QRCode from 'qrcode';
       line-height: 0;
     }
     img {
+      max-width: 100%;
+      height: auto;
       image-rendering: pixelated;
       background: #fff;
     }
