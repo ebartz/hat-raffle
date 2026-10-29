@@ -9,101 +9,126 @@
       <app-hat class="brand-hat" [shadow]="false" />
       <span class="brand-name">Win a <strong>Fedora</strong></span>
     </div>
-    <a class="config-link" routerLink="/config" aria-label="Settings">⚙</a>
+    <div class="topbar-actions">
+      @if (canFullscreen) {
+        <button
+          #fsButton
+          type="button"
+          class="icon-button"
+          (click)="toggleFullscreen(fsButton)"
+          [attr.aria-label]="fullscreen() ? 'Exit fullscreen' : 'Fullscreen'"
+          [title]="fullscreen() ? 'Exit fullscreen' : 'Fullscreen (presentation mode)'"
+        >
+          <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">
+            @if (fullscreen()) {
+              <path d="M9 3v6H3M15 3v6h6M9 21v-6H3M15 21v-6h6" />
+            } @else {
+              <path d="M3 9V3h6M21 9V3h-6M3 15v6h6M21 15v6h-6" />
+            }
+          </svg>
+        </button>
+      }
+      <a class="icon-button" routerLink="/config" aria-label="Settings">⚙</a>
+    </div>
   </header>
 
-  <main class="stage" (click)="tapResult()">
-    @if (cameraMode()) {
-      <section class="panel camera-panel" [class.is-hidden]="state() !== 'ready'">
-        <h1>{{ i18n.t('cameraTitle') }}</h1>
-        @if (vibrationLocked()) {
-          <button type="button" class="vibration-hint">{{ i18n.t('enableVibration') }}</button>
+  <main class="stage" #stage (click)="tapResult()">
+    <div class="fit" #fit>
+      @if (cameraMode()) {
+        <section class="panel camera-panel" [class.is-hidden]="state() !== 'ready'">
+          <h1>{{ i18n.t('cameraTitle') }}</h1>
+          @if (vibrationLocked()) {
+            <button type="button" class="vibration-hint">{{ i18n.t('enableVibration') }}</button>
+          }
+          <app-camera-scanner
+            [active]="state() === 'ready' && !locked()"
+            (scanned)="onScan($event)"
+          />
+        </section>
+      }
+      @if (remoteStation() && state() !== 'ready') {
+        <div class="remote-tag">{{ i18n.t('remoteStation', { s: remoteStation()! }) }}</div>
+      }
+      @switch (state()) {
+        @case ('ready') {
+          @if (!cameraMode()) {
+            <section class="panel ready">
+              <div class="copy">
+                <p class="eyebrow">Win a Fedora</p>
+                <h1>{{ i18n.t('readyTitle') }}</h1>
+                <p class="lead">{{ i18n.t('readySubtitle') }}</p>
+                <p class="hint">
+                  <span class="scan-icon" aria-hidden="true"><span class="laser"></span></span>
+                  {{ i18n.t('readyHint') }}
+                </p>
+              </div>
+              <div class="visual">
+                <app-hat class="float-hat" />
+              </div>
+            </section>
+          }
         }
-        <app-camera-scanner [active]="state() === 'ready'" (scanned)="onScan($event)" />
-      </section>
-    }
-    @if (remoteStation() && state() !== 'ready') {
-      <div class="remote-tag">{{ i18n.t('remoteStation', { s: remoteStation()! }) }}</div>
-    }
-    @switch (state()) {
-      @case ('ready') {
-        @if (!cameraMode()) {
-          <section class="panel ready">
-            <div class="copy">
-              <p class="eyebrow">Win a Fedora</p>
-              <h1>{{ i18n.t('readyTitle') }}</h1>
-              <p class="lead">{{ i18n.t('readySubtitle') }}</p>
-              <p class="hint">
-                <span class="scan-icon" aria-hidden="true"><span class="laser"></span></span>
-                {{ i18n.t('readyHint') }}
-              </p>
+        @case ('processing') {
+          <section class="panel center">
+            <div class="spinner" aria-hidden="true"></div>
+            <h2>{{ i18n.t('processing') }}</h2>
+          </section>
+        }
+        @case ('win') {
+          <section class="panel center win">
+            <div class="win-hat-wrap">
+              <div class="glow"></div>
+              <app-hat class="win-hat" />
             </div>
-            <div class="visual">
-              <app-hat class="float-hat" />
-            </div>
+            <h1>{{ i18n.t('winTitle') }}</h1>
+            <p class="lead">
+              {{ resultText() }}
+            </p>
+            <div class="number-badge">#{{ result()?.record?.number }}</div>
+          </section>
+        }
+        @case ('lose') {
+          <section class="panel center lose">
+            <div class="number-circle">{{ result()?.record?.number }}</div>
+            <h1>{{ i18n.t('loseTitle') }}</h1>
+            <p class="lead">
+              {{ resultText() }}
+            </p>
+            <p class="hint">{{ i18n.t('loseTeaser') }}</p>
+          </section>
+        }
+        @case ('soldout') {
+          <section class="panel center lose">
+            <app-hat class="sad-hat" />
+            <h1>{{ i18n.t('soldOutTitle') }}</h1>
+            <p class="lead">{{ i18n.t('soldOutSubtitle') }}</p>
+          </section>
+        }
+        @case ('duplicate') {
+          <section class="panel center alert">
+            <div class="alert-icon" aria-hidden="true">!</div>
+            <h1>{{ i18n.t('duplicateTitle') }}</h1>
+            <p class="lead">
+              {{ i18n.t('duplicateSubtitle', { n: result()?.record?.number ?? '' }) }}
+            </p>
+            <p class="hint">
+              {{
+                result()?.record?.winner
+                  ? i18n.t('duplicateHintWinner')
+                  : i18n.t('duplicateHintLoser')
+              }}
+            </p>
+          </section>
+        }
+        @case ('error') {
+          <section class="panel center alert">
+            <div class="alert-icon" aria-hidden="true">×</div>
+            <h1>{{ i18n.t('errorTitle') }}</h1>
+            <p class="lead">{{ i18n.t('errorSubtitle') }}</p>
           </section>
         }
       }
-      @case ('processing') {
-        <section class="panel center">
-          <div class="spinner" aria-hidden="true"></div>
-          <h2>{{ i18n.t('processing') }}</h2>
-        </section>
-      }
-      @case ('win') {
-        <section class="panel center win">
-          <div class="win-hat-wrap">
-            <div class="glow"></div>
-            <app-hat class="win-hat" />
-          </div>
-          <h1>{{ i18n.t('winTitle') }}</h1>
-          <p class="lead">
-            {{ resultText() }}
-          </p>
-          <div class="number-badge">#{{ result()?.record?.number }}</div>
-        </section>
-      }
-      @case ('lose') {
-        <section class="panel center lose">
-          <div class="number-circle">{{ result()?.record?.number }}</div>
-          <h1>{{ i18n.t('loseTitle') }}</h1>
-          <p class="lead">
-            {{ resultText() }}
-          </p>
-          <p class="hint">{{ i18n.t('loseTeaser') }}</p>
-        </section>
-      }
-      @case ('soldout') {
-        <section class="panel center lose">
-          <app-hat class="sad-hat" />
-          <h1>{{ i18n.t('soldOutTitle') }}</h1>
-          <p class="lead">{{ i18n.t('soldOutSubtitle') }}</p>
-        </section>
-      }
-      @case ('duplicate') {
-        <section class="panel center alert">
-          <div class="alert-icon" aria-hidden="true">!</div>
-          <h1>{{ i18n.t('duplicateTitle') }}</h1>
-          <p class="lead">
-            {{ i18n.t('duplicateSubtitle', { n: result()?.record?.number ?? '' }) }}
-          </p>
-          <p class="hint">
-            {{
-              result()?.record?.winner
-                ? i18n.t('duplicateHintWinner')
-                : i18n.t('duplicateHintLoser')
-            }}
-          </p>
-        </section>
-      }
-      @case ('error') {
-        <section class="panel center alert">
-          <div class="alert-icon" aria-hidden="true">×</div>
-          <h1>{{ i18n.t('errorTitle') }}</h1>
-          <p class="lead">{{ i18n.t('errorSubtitle') }}</p>
-        </section>
-      }
-    }
+    </div>
   </main>
 
   <footer class="stats">
@@ -123,7 +148,9 @@
     }
   </footer>
 
-  @if (idle()) {
+  @if (locked()) {
+    <app-access-gate />
+  } @else if (idle()) {
     <app-attract [winners]="store.stats().winners" [hatsLeft]="hatsLeft()" />
   }
 </div>

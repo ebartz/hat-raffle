@@ -71,8 +71,13 @@ export function createHandler(
   }, HEARTBEAT_MS);
   heartbeat.unref();
 
-  /** Admin endpoints need the config PIN once one is set. Brute force is slowed down per IP. */
-  const requirePin = (req, res, pin = req.headers['x-config-pin']) => {
+  /**
+   * Once a PIN is set, every API call needs it – stations as well as the config page. Brute
+   * force is slowed down per IP. Requests without any PIN are rejected without counting as a
+   * failed attempt, so a station that has not been given the password yet cannot lock out the
+   * other stations behind the same address.
+   */
+  const requirePin = (req, res, pin) => {
     const forwarded = trustProxy ? String(req.headers['x-forwarded-for'] ?? '').split(',')[0] : '';
     const ip = forwarded.trim() || req.socket.remoteAddress || '';
     const fails = pinFails.get(ip);
@@ -83,6 +88,10 @@ export function createHandler(
     if (config.checkPin(pin)) {
       pinFails.delete(ip);
       return true;
+    }
+    if (!pin) {
+      send(res, 403, { error: 'pin required' });
+      return false;
     }
     const count = (fails?.count ?? 0) + 1;
     pinFails.set(
@@ -113,6 +122,16 @@ export function createHandler(
 
       const key = req.headers['x-api-key'] ?? url.searchParams.get('key');
       if (apiKey && key !== apiKey) return send(res, 401, { error: 'invalid api key' });
+
+      // Public: tells a new station whether it has to ask for the password.
+      if (route === 'GET /api/access') return send(res, 200, { pinSet: config.pinSet });
+      if (route === 'POST /api/config/unlock') {
+        const body = await readJson(req);
+        if (!requirePin(req, res, body.pin)) return;
+        return send(res, 200, { ok: true });
+      }
+      const pin = headerPin(req) ?? url.searchParams.get('pin');
+      if (!requirePin(req, res, pin)) return;
 
       switch (route) {
         case 'POST /api/scans': {
@@ -148,13 +167,7 @@ export function createHandler(
           return send(res, 200, store.stats);
         case 'GET /api/config':
           return send(res, 200, config.publicValue);
-        case 'POST /api/config/unlock': {
-          const body = await readJson(req);
-          if (!requirePin(req, res, body.pin)) return;
-          return send(res, 200, { ok: true });
-        }
         case 'PUT /api/config': {
-          if (!requirePin(req, res)) return;
           const body = await readJson(req);
           const value = await config.update(body.config, { newPin: body.newPin });
           broadcast('config', value);
@@ -162,11 +175,8 @@ export function createHandler(
           return send(res, 200, value);
         }
         case 'GET /api/scans':
-          if (!requirePin(req, res)) return;
           return send(res, 200, { scans: store.scans, ...store.stats });
         case 'GET /api/scans.csv':
-          if (!requirePin(req, res, req.headers['x-config-pin'] ?? url.searchParams.get('pin')))
-            return;
           return sendCsv(res, store.scans);
         case 'GET /api/events': {
           res.writeHead(200, {
@@ -210,6 +220,20 @@ export function createApp(store, config, options = {}) {
     return close(cb);
   };
   return server;
+}
+
+/**
+ * Header values may only contain Latin-1, so the app sends the PIN URI-encoded – otherwise a PIN
+ * like "Fedora€" could never be sent. Undecodable values are taken as they are.
+ */
+function headerPin(req) {
+  const raw = req.headers['x-config-pin'];
+  if (typeof raw !== 'string') return undefined;
+  try {
+    return decodeURIComponent(raw);
+  } catch {
+    return raw;
+  }
 }
 
 function send(res, status, body) {

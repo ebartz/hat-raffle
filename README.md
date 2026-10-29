@@ -51,9 +51,13 @@ share one counter, the settings and the results.
   - _Raffle_ (stored in the backend, the same for all stations): winner rule, number of Fedoras,
     timings, language of the visitor screens (English/German), idle texts, show results of other
     stations, PIN/password
-  - Health check, scanner test, list of all scanned codes (also as QR codes), CSV export
+  - Health check, scanner test, list of all scanned codes (also as QR codes), CSV export and
+    PDF export (one row per scan with its QR code, winners highlighted)
 - **PIN/password for the settings**: once set, it is required every time the settings are opened
   (with a backend on all stations; stored as a scrypt hash, 5 wrong attempts → 30 s lockout)
+- **Protected backend**: with a PIN set, the backend only accepts requests that carry it. A new
+  device asks for the password once and keeps it; until then it can neither scan nor see anything.
+  After the PIN is changed, every other station asks for the new one
 - **Backend** without dependencies (`server/server.mjs`): stores scans and settings as JSON files
 
 ## Quick start at the booth (one laptop)
@@ -63,7 +67,7 @@ npm ci
 npm run start:booth          # builds the frontend and starts the backend on port 3000
 ```
 
-Then open <http://localhost:3000> in the browser (full screen: F11). When the app is served by the
+Then open <http://localhost:3000> in the browser (full screen: the button next to the ⚙ in the top bar, or F11). When the app is served by the
 backend it connects to it automatically on first start. From now on every scan ends up in
 `server/data/scans.json`, the settings in `server/data/config.json`.
 
@@ -169,15 +173,18 @@ Configured with environment variables:
 | `GET`  | `/healthz`           | Health check `{ status: "ok", app: "hat-raffle" }`                                                                                                                             |
 | `POST` | `/api/scans`         | Body `{ code, station, clientId }` → `201 { status: "new", record, soldOut }` or `200 { status: "duplicate", record }`. The winner rule always comes from the shared settings. |
 | `GET`  | `/api/stats`         | `{ total, winners }`                                                                                                                                                           |
+| `GET`  | `/api/access`        | Public: `{ pinSet }` – tells a new station whether it has to ask for the password                                                                                              |
 | `GET`  | `/api/config`        | Shared settings incl. `pinSet` (without the PIN)                                                                                                                               |
 | `PUT`  | `/api/config` 🔒     | Body `{ config, newPin? }` (`newPin: null` removes the PIN)                                                                                                                    |
 | `POST` | `/api/config/unlock` | Body `{ pin }` → `200` or `403`, after 5 wrong attempts `429`                                                                                                                  |
 | `GET`  | `/api/events`        | Server-Sent Events: `hello` (settings + counters), `scan` (new scan without the code), `config`                                                                                |
 | `GET`  | `/api/scans` 🔒      | All scans `{ scans, total, winners }`                                                                                                                                          |
-| `GET`  | `/api/scans.csv` 🔒  | CSV export (PIN also as `?pin=`)                                                                                                                                               |
+| `GET`  | `/api/scans.csv` 🔒  | CSV export                                                                                                                                                                     |
 
-🔒 = needs the header `X-Config-Pin` once a PIN is set. Scanning and the kiosk screens work without
-the PIN.
+Once a PIN is set, every route except `/healthz`, `/api/access` and `/api/config/unlock` needs it
+as header `X-Config-Pin` (or as `?pin=`, which `EventSource` needs for `/api/events`). Requests
+without any PIN are rejected without counting towards the lockout. 🔒 = the config page sends the
+PIN that was entered there.
 
 A record looks like this:
 

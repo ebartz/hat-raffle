@@ -9,6 +9,8 @@ export interface DeviceSettings {
   /** `local` stores scans in the browser, otherwise the base URL of the backend. */
   backend: string;
   apiKey: string;
+  /** Password of a protected backend (its config PIN), entered once on this device. */
+  backendPin: string;
   /** Name of this scanning station, sent along with every scan. */
   station: string;
   /** Maximum pause between two key strokes of the barcode scanner. */
@@ -44,6 +46,7 @@ export type Settings = DeviceSettings & SharedSettings;
 export const DEFAULT_DEVICE_SETTINGS: DeviceSettings = {
   backend: 'local',
   apiKey: '',
+  backendPin: '',
   station: 'booth-1',
   scannerKeyTimeoutMs: 80,
   inputMode: 'auto',

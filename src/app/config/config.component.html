@@ -93,7 +93,10 @@
               <option value="scanner">USB hand scanner</option>
               <option value="camera">Camera</option>
             </select>
-            <small>Phones and tablets use the camera and skip the idle animation.</small>
+            <small>
+              Phones and tablets use the camera and skip the idle animation.<br />
+              This screen: {{ viewport }}
+            </small>
           </label>
 
           <label class="field">
@@ -300,6 +303,14 @@
           >
             CSV export
           </button>
+          <button
+            type="button"
+            class="btn btn-secondary"
+            (click)="exportPdf()"
+            [disabled]="!scans().length || pdfBusy()"
+          >
+            {{ pdfBusy() ? 'Creating PDF …' : 'PDF export' }}
+          </button>
           @if (isLocal) {
             <button type="button" class="btn btn-danger" (click)="clearLocal()">
               Delete local data
@@ -360,7 +371,29 @@
   <div class="modal-backdrop" (click)="selected.set(null)">
     <div class="modal" role="dialog" aria-modal="true" (click)="$event.stopPropagation()">
       <h2>Participant #{{ scan.number }} {{ scan.winner ? '🎩' : '' }}</h2>
-      <app-qr-code [value]="scan.code" [size]="320" />
+      <div class="modal-nav">
+        <button
+          type="button"
+          class="btn btn-tertiary nav-btn"
+          (click)="selected.set(previousScan())"
+          [disabled]="!previousScan()"
+          aria-label="Previous QR code"
+          title="Previous QR code (←)"
+        >
+          ‹
+        </button>
+        <app-qr-code [value]="scan.code" [size]="320" />
+        <button
+          type="button"
+          class="btn btn-tertiary nav-btn"
+          (click)="selected.set(nextScan())"
+          [disabled]="!nextScan()"
+          aria-label="Next QR code"
+          title="Next QR code (→)"
+        >
+          ›
+        </button>
+      </div>
       <code class="modal-code">{{ scan.code }}</code>
       <p class="muted">{{ scan.timestamp | date: 'yyyy-MM-dd HH:mm:ss' }} · {{ scan.station }}</p>
       <button type="button" class="btn btn-primary" (click)="selected.set(null)">Close</button>

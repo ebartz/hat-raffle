@@ -49,15 +49,15 @@
 }
 
 .hero-hat {
-  width: min(40vw, 460px);
-  margin-bottom: 1.5rem;
+  width: min(40vw, 34vh, 460px);
+  margin-bottom: clamp(0.6rem, 2.5vh, 1.5rem);
   transform-origin: 50% 90%;
   animation: tip 5s ease-in-out infinite;
   filter: drop-shadow(0 20px 40px rgba(238, 0, 0, 0.45));
 }
 
 .headline-wrap {
-  min-height: clamp(4rem, 8vw, 8rem);
+  min-height: clamp(3rem, min(8vw, 12vh), 8rem);
   display: flex;
   align-items: center;
 }
@@ -66,14 +66,14 @@
   margin: 0;
   font-family: $font-display;
   font-weight: 900;
-  font-size: clamp(3rem, 7.5vw, 7rem);
+  font-size: clamp(2.2rem, min(7.5vw, 11vh), 7rem);
   line-height: 1;
   animation: headline-in 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 .rule {
-  margin: 1.2rem 0 2rem;
-  font-size: clamp(1.2rem, 2vw, 1.8rem);
+  margin: clamp(0.6rem, 2vh, 1.2rem) 0 clamp(1rem, 3.5vh, 2rem);
+  font-size: clamp(1.05rem, min(2vw, 3.2vh), 1.8rem);
   color: $rh-gray-20;
 }
 
@@ -81,10 +81,10 @@
   display: inline-flex;
   align-items: center;
   gap: 0.9rem;
-  padding: 1.1rem 2.4rem;
+  padding: clamp(0.7rem, 2vh, 1.1rem) 2.4rem;
   font-family: $font-display;
   font-weight: 700;
-  font-size: clamp(1.3rem, 2.4vw, 2.1rem);
+  font-size: clamp(1.15rem, min(2.4vw, 3.8vh), 2.1rem);
   background: $rh-red;
   border-radius: 999px;
   box-shadow: 0 0 0 0 rgba(238, 0, 0, 0.7);
@@ -102,13 +102,13 @@
 .counter {
   display: flex;
   gap: 2.5rem;
-  margin-top: 2rem;
-  font-size: 1.4rem;
+  margin-top: clamp(1rem, 3.5vh, 2rem);
+  font-size: clamp(1.05rem, 2.4vh, 1.4rem);
   color: $rh-gray-40;
 
   strong {
     font-family: $font-display;
-    font-size: 2rem;
+    font-size: clamp(1.4rem, 3.6vh, 2rem);
     color: $rh-white;
   }
 }

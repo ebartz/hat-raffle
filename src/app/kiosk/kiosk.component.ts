@@ -1,5 +1,7 @@
 import {
+  AfterViewInit,
   Component,
+  ElementRef,
   OnDestroy,
   OnInit,
   computed,
@@ -7,9 +9,11 @@ import {
   inject,
   signal,
   untracked,
+  viewChild,
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Subscription } from 'rxjs';
+import { AccessService } from '../core/access.service';
 import { isMobileDevice } from '../core/device';
 import { HapticsService } from '../core/haptics.service';
 import { I18nService } from '../core/i18n.service';
@@ -20,19 +24,36 @@ import { ScannerService } from '../core/scanner.service';
 import { SettingsService } from '../core/settings.service';
 import { CelebrationService } from '../shared/celebration.service';
 import { HatComponent } from '../shared/hat.component';
+import { AccessGateComponent } from './access-gate.component';
 import { AttractComponent } from './attract.component';
 import { CameraScannerComponent } from './camera-scanner.component';
+
+type WebkitDocument = Document & {
+  webkitFullscreenEnabled?: boolean;
+  webkitFullscreenElement?: Element | null;
+  webkitExitFullscreen?: () => Promise<void> | void;
+};
+type WebkitElement = HTMLElement & { webkitRequestFullscreen?: () => Promise<void> | void };
+
+const isFullscreen = () =>
+  !!(document.fullscreenElement ?? (document as WebkitDocument).webkitFullscreenElement);
 
 export type KioskState =
   'ready' | 'processing' | 'win' | 'lose' | 'duplicate' | 'soldout' | 'error';
 
 @Component({
   selector: 'app-kiosk',
-  imports: [HatComponent, AttractComponent, CameraScannerComponent, RouterLink],
+  imports: [
+    HatComponent,
+    AttractComponent,
+    CameraScannerComponent,
+    RouterLink,
+    AccessGateComponent,
+  ],
   templateUrl: './kiosk.component.html',
   styleUrl: './kiosk.component.scss',
 })
-export class KioskComponent implements OnInit, OnDestroy {
+export class KioskComponent implements OnInit, AfterViewInit, OnDestroy {
   protected readonly i18n = inject(I18nService);
   protected readonly store = inject(ScanStoreService);
   private readonly scanner = inject(ScannerService);
@@ -41,6 +62,9 @@ export class KioskComponent implements OnInit, OnDestroy {
   private readonly realtime = inject(RealtimeService);
   private readonly haptics = inject(HapticsService);
   private readonly isMobile = isMobileDevice();
+  /** The backend is protected and this device has no password yet: no scans until it has. */
+  private readonly access = inject(AccessService);
+  protected readonly locked = computed(() => this.access.state() === 'password');
 
   protected readonly settings = this.settingsService.settings;
   protected readonly state = signal<KioskState>('ready');
@@ -67,7 +91,17 @@ export class KioskComponent implements OnInit, OnDestroy {
     return this.i18n.t(won ? 'winSubtitle' : 'loseSubtitle', { n });
   });
 
+  /** Hidden where the browser has no fullscreen API (e.g. Safari on the iPhone). */
+  protected readonly canFullscreen =
+    !!document.fullscreenEnabled || !!(document as WebkitDocument).webkitFullscreenEnabled;
+  protected readonly fullscreen = signal(isFullscreen());
+
+  private readonly stageRef = viewChild.required<ElementRef<HTMLElement>>('stage');
+  private readonly fitRef = viewChild.required<ElementRef<HTMLElement>>('fit');
+  private fitObserver?: ResizeObserver;
+
   private readonly subs = new Subscription();
+  private readonly onFullscreenChange = () => this.fullscreen.set(isFullscreen());
   private resultTimer?: number;
   private idleTimer?: number;
   private statsInterval?: number;
@@ -93,10 +127,23 @@ export class KioskComponent implements OnInit, OnDestroy {
       30_000,
     );
     this.armIdleTimer();
+    document.addEventListener('fullscreenchange', this.onFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', this.onFullscreenChange);
+  }
+
+  ngAfterViewInit(): void {
+    // Whatever the screen (Samsung DeX, small laptops, odd browser zoom): shrink the content of
+    // the stage until it fits, instead of cutting off hats and texts.
+    this.fitObserver = new ResizeObserver(() => this.fitStage());
+    this.fitObserver.observe(this.stageRef().nativeElement);
+    this.fitObserver.observe(this.fitRef().nativeElement);
   }
 
   ngOnDestroy(): void {
+    this.fitObserver?.disconnect();
     this.subs.unsubscribe();
+    document.removeEventListener('fullscreenchange', this.onFullscreenChange);
+    document.removeEventListener('webkitfullscreenchange', this.onFullscreenChange);
     clearTimeout(this.resultTimer);
     clearTimeout(this.idleTimer);
     clearInterval(this.statsInterval);
@@ -112,8 +159,44 @@ export class KioskComponent implements OnInit, OnDestroy {
     }
   }
 
+  private fitStage(): void {
+    const stage = this.stageRef().nativeElement;
+    const fit = this.fitRef().nativeElement;
+    // Phones scroll instead.
+    if (this.cameraMode()) {
+      fit.style.zoom = '';
+      return;
+    }
+    const style = getComputedStyle(stage);
+    const available =
+      stage.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom);
+    fit.style.zoom = '1';
+    const natural = fit.offsetHeight;
+    const zoom = natural > available && available > 0 ? Math.max(0.4, available / natural) : 1;
+    // Setting the same value again does not resize anything, so the observer settles at once.
+    fit.style.zoom = zoom < 1 ? zoom.toFixed(3) : '';
+  }
+
+  /** Presentation mode: fullscreen hides the browser's address bar and tabs. */
+  protected async toggleFullscreen(button: HTMLElement): Promise<void> {
+    // Keep the focus off the button, so scanner input cannot press it.
+    button.blur();
+    const doc = document as WebkitDocument;
+    const root = document.documentElement as WebkitElement;
+    try {
+      if (isFullscreen()) {
+        await (doc.exitFullscreen?.() ?? doc.webkitExitFullscreen?.());
+      } else {
+        await (root.requestFullscreen?.({ navigationUI: 'hide' }) ??
+          root.webkitRequestFullscreen?.());
+      }
+    } catch {
+      // Refused by the browser (e.g. not triggered by a user gesture) – nothing to do.
+    }
+  }
+
   protected async onScan(code: string): Promise<void> {
-    if (this.state() === 'processing') return;
+    if (this.state() === 'processing' || this.locked()) return;
     clearTimeout(this.resultTimer);
     clearTimeout(this.idleTimer);
     this.celebration.stop();
